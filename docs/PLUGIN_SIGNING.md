@@ -42,18 +42,18 @@ Guarda a privada fora do repositório (ex.: gestor de secrets, cofre).
 
 ```bash
 # 1) Pacote normal (como no CI)
-./dify-plugin-linux-amd64 plugin package . -o lm_db_schema_rag-0.2.3.difypkg
+./dify-plugin-linux-amd64 plugin package . -o lm_db_schema_rag-1.0.0.difypkg
 
 # 2) Assinar (produz ficheiro com sufixo .signed.difypkg)
-./dify-plugin-linux-amd64 signature sign lm_db_schema_rag-0.2.3.difypkg -p lm_db_schema_rag_signing.private.pem
+./dify-plugin-linux-amd64 signature sign lm_db_schema_rag-1.0.0.difypkg -p lm_db_schema_rag_signing.private.pem
 ```
 
-Resultado típico: `lm_db_schema_rag-0.2.3.signed.difypkg`
+Resultado típico: `lm_db_schema_rag-1.0.0.signed.difypkg`
 
 **Verificar localmente** antes de publicar:
 
 ```bash
-./dify-plugin-linux-amd64 signature verify lm_db_schema_rag-0.2.3.signed.difypkg -p lm_db_schema_rag_signing.public.pem
+./dify-plugin-linux-amd64 signature verify lm_db_schema_rag-1.0.0.signed.difypkg -p lm_db_schema_rag_signing.public.pem
 ```
 
 *(Sem `-p`, o CLI pode validar contra a chave do marketplace oficial — o teu pacote **não** passará.)*

@@ -4,34 +4,16 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
-### 0.2.3
+### 1.0.0
 
-- **CI:** Workflows that opened PRs to `langgenius/dify-plugins` are **disabled** (`publish.yml`, `plugin-publish.yml`: commented automatic triggers + `if: false`). Distribution via **GitHub Release + `.difypkg`** only (`release-attach-difypkg.yml` unchanged).
-- **CI (earlier in branch):** fork resolution secret `DIFY_PLUGINS_FORK`, verify step, `PLUGIN_ACTION || github.token` for checkout; docs `docs/PUBLISH_DIFY_PLUGINS.md`.
+First **stable release line** for **LM DB Schema RAG** (`lmsis/lm_db_schema_rag`) after packaging, CI, and self-hosted install paths were validated:
 
-### 0.2.2
+- Plugin id **`lmsis/lm_db_schema_rag`**; author **`lmsis`**; i18n (`en_US` / `pt_BR` / `zh_Hans`), optional **`ui_language`** on selected tools.
+- **GitHub Release** ships **`lm_db_schema_rag-1.0.0.difypkg`** via `release-attach-difypkg.yml`; optional **signing** with repo secret **`PLUGIN_SIGNING_PRIVATE_PEM`** (see `docs/PLUGIN_SIGNING.md`).
+- Workflows that opened PRs to `langgenius/dify-plugins` are **disabled**; distribution is **this repo + `.difypkg`**, not the official marketplace monorepo.
+- Tool YAML fixes for `dify-plugin package` (quoted strings where colons broke parsing).
 
-- **Fix:** `tools/sql_executer_cust.yaml` — quoted `human_description` strings so YAML parsers accept colons in URLs and in `ex.: …` (pt_BR). Same for `tools/llm_plot.yaml` pt_BR. Unblocks `dify-plugin package` / publish workflow.
-
-### 0.2.1
-
-- **Docs:** README / README_CN — **Acknowledgments** section: states the project is based on the original [SchemaRAG](https://github.com/JOTO-AI/SchemaRAG-dify-plugin) (JOTO-AI, Dylan Jiang); upstream link in Contact.
-
-### 0.2.0 (new plugin identity)
-
-- **Breaking:** New Dify plugin id **`lmsis/lm_db_schema_rag`** (was `joto/schemarag`). Re-install the plugin; existing workflows must re-bind tool nodes.
-- **Renames:** `SchemaRAGBuilder` → `LmDbSchemaRagBuilder`; provider `LmDbSchemaRagProvider` in `provider/build_lm_db_schema_rag.py`.
-- **Author:** `lmsis` in `manifest.yaml`, `provider.yaml`, and all tool YAMLs.
-
-### 0.1.7
-
-- **i18n**: English as default in code and logs; `en_US` / `pt_BR` / `zh_Hans` in Dify tool and provider YAMLs.
-- **`tools/tool_messages.py`**: centralized chat strings; optional **`ui_language`** on Text to Data, SQL Executor, and Custom SQL Executor (default `en_US`).
-- Docs: `docs/TRADUCAO_ATENCAO.md`, `RELEASE_NOTES.md`. See release notes on GitHub for the full list.
-
-### 0.1.6 and earlier
-
-- See git history and previous releases.
+Earlier experimental tags (`v0.2.x`, etc.) were **removed** from release history on purpose; details remain in **git log** if needed.
 
 ## Feature overview
 

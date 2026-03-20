@@ -10,7 +10,7 @@ dependencies:
   type: package
   value:
     # After installing lmsis/lm_db_schema_rag from marketplace or GitHub, replace hash with the value from Dify.
-    plugin_unique_identifier: lmsis/lm_db_schema_rag:0.2.3@0000000000000000000000000000000000000000000000000000000000000000
+    plugin_unique_identifier: lmsis/lm_db_schema_rag:1.0.0@0000000000000000000000000000000000000000000000000000000000000000
 kind: app
 version: 0.4.0
 workflow:

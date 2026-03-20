@@ -72,10 +72,11 @@ jobs:
       - name: Checkout target repo
         uses: actions/checkout@v3
         with:
-          # Use author variable for repository
-          repository: langgenius/dify-plugins
+          # Fork under manifest `author` (e.g. lmsis/dify-plugins); PR targets langgenius/dify-plugins
+          repository: ${{ steps.get_basic_info.outputs.author }}/dify-plugins
           path: dify-plugins
-          token: ${{ secrets.PLUGIN_ACTION }}
+          # PAT recommended (repo scope, access to fork). If unset, github.token is used (checkout may work for public forks; push/PR may still need PAT).
+          token: ${{ secrets.PLUGIN_ACTION || github.token }}
           fetch-depth: 1 # Fetch only the last commit to speed up checkout
           persist-credentials: true # Persist credentials for subsequent git operations
 
@@ -124,7 +125,7 @@ jobs:
 
       - name: Create PR via GitHub API
         env:
-          GH_TOKEN: ${{ secrets.PLUGIN_ACTION }} # Use the provided token for authentication
+          GH_TOKEN: ${{ secrets.PLUGIN_ACTION || github.token }}
         run: |
           gh pr create \
             --repo langgenius/dify-plugins \

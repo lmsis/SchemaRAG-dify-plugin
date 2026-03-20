@@ -61,7 +61,7 @@ jobs:
         with:
           repository: ${{steps.get_basic_info.outputs.author}}/dify-plugins
           path: dify-plugins
-          token: ${{ secrets.PLUGIN_ACTION }}
+          token: ${{ secrets.PLUGIN_ACTION || github.token }}
           fetch-depth: 1
           persist-credentials: true
 
@@ -94,10 +94,8 @@ jobs:
 
       - name: Create PR via GitHub API
         env:
-          # How to config the token:
-          # 1. Profile -> Settings -> Developer settings -> Personal access tokens -> Generate new token (with repo scope) -> Copy the token
-          # 2. Go to the target repository -> Settings -> Secrets and variables -> Actions -> New repository secret -> Add the token as PLUGIN_ACTION
-          GH_TOKEN: ${{ secrets.PLUGIN_ACTION }}
+          # Prefer repository secret PLUGIN_ACTION (PAT, repo scope, fork + PR to langgenius/dify-plugins). Falls back to github.token if unset.
+          GH_TOKEN: ${{ secrets.PLUGIN_ACTION || github.token }}
         run: |
           gh pr create \
             --repo langgenius/dify-plugins \

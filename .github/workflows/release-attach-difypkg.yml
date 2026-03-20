@@ -1,5 +1,8 @@
 # Builds lm_db_schema_rag-{version}.difypkg and uploads it to THIS repo's GitHub Release.
 # Dify "Install from GitHub" only lists .difypkg assets on the release — without this step the package dropdown stays empty.
+#
+# Optional signing: set repo secret PLUGIN_SIGNING_PRIVATE_PEM (full PEM of the private key).
+# See docs/PLUGIN_SIGNING.md — upload is always named *.difypkg (signed content replaces unsigned).
 name: Attach difypkg to release
 
 on:
@@ -31,11 +34,32 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building $PLUGIN_NAME $VERSION"
 
-      - name: Package plugin
+      - name: Package plugin (and sign if secret set)
         id: pack
+        env:
+          PLUGIN_SIGNING_PRIVATE_PEM: ${{ secrets.PLUGIN_SIGNING_PRIVATE_PEM }}
         run: |
+          set -euo pipefail
           PKG="${{ steps.meta.outputs.plugin_name }}-${{ steps.meta.outputs.version }}.difypkg"
           "$RUNNER_TEMP/bin/dify-plugin" plugin package . -o "$PKG"
+
+          if [ -n "${PLUGIN_SIGNING_PRIVATE_PEM:-}" ]; then
+            umask 077
+            KEYFILE="$RUNNER_TEMP/plugin-signing-private.pem"
+            printf '%s\n' "$PLUGIN_SIGNING_PRIVATE_PEM" > "$KEYFILE"
+            "$RUNNER_TEMP/bin/dify-plugin" signature sign "$PKG" -p "$KEYFILE"
+            rm -f "$KEYFILE"
+            SIGNED="${PKG%.difypkg}.signed.difypkg"
+            if [ ! -f "$SIGNED" ]; then
+              echo "::error::signature sign did not produce $SIGNED"
+              exit 1
+            fi
+            mv -f "$SIGNED" "$PKG"
+            echo "Signed $PKG for third-party verification on Dify."
+          else
+            echo "::notice::PLUGIN_SIGNING_PRIVATE_PEM not set — release asset is UNSIGNED. See docs/PLUGIN_SIGNING.md"
+          fi
+
           ls -la "$PKG"
           echo "package=$PKG" >> "$GITHUB_OUTPUT"
 

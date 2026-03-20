@@ -60,16 +60,44 @@ Resultado típico: `lm_db_schema_rag-0.2.3.signed.difypkg`
 
 ---
 
-## 4. Publicar o ficheiro **assinado**
+## 4. GitHub Actions (automático neste repo)
 
-- Anexa à GitHub Release o **`.signed.difypkg`** (ou renomeia para `.difypkg` se o Dify só filtrar por extensão — o importante é ser o blob **já assinado**).
-- Se quiseres CI: após `plugin package`, corre `signature sign` com a privada vinda de um **secret** (nunca em claro no YAML).
+O workflow **`.github/workflows/release-attach-difypkg.yml`**, ao publicar uma **Release**, gera o `.difypkg` e **assina** se existir o secret:
+
+| Secret | Conteúdo |
+|--------|----------|
+| **`PLUGIN_SIGNING_PRIVATE_PEM`** | Texto completo do ficheiro **`.private.pem`** (incluindo linhas `BEGIN` / `END`). Usa “New repository secret” e cola o PEM em **multilinha**. |
+
+- Com o secret definido, o artefacto enviado para a release continua a chamar-se `{name}-{version}.difypkg`, mas o conteúdo é **já assinado** (o CI substitui o pacote não assinado após `signature sign`).
+- **Sem** o secret, o workflow emite um aviso e faz upload do pacote **sem assinatura** (comportamento anterior).
+
+**O que tens de fazer uma vez:** gerar o par de chaves (secção 2), colocar a **privada** no secret acima, e a **pública** no servidor Dify (secção 6).
 
 ---
 
-## 5. Configurar o Dify (plugin daemon)
+## 5. Script local (`scripts/package-and-sign.sh`)
 
-### 5.1 Colocar a chave **pública** onde o contentor vê
+Mesmo fluxo que o CI, na tua máquina:
+
+```bash
+export DIFY_PLUGIN_CLI=/caminho/para/dify-plugin-darwin-arm64   # ou linux-amd64
+./scripts/package-and-sign.sh /caminho/seguro/lm_db_schema_rag_signing.private.pem
+```
+
+Gera `{name}-{version}.difypkg` na raiz do plugin, **assinado** (sobrescreve o nome final sem `.signed.` no meio).
+
+---
+
+## 6. Publicar o ficheiro **assinado**
+
+- **Release GitHub:** o workflow anexa o `.difypkg` assinado quando o secret está configurado.
+- **Manual:** usa o script da secção 5 e anexa o `.difypkg` à release.
+
+---
+
+## 7. Configurar o Dify (plugin daemon)
+
+### 7.1 Colocar a chave **pública** onde o contentor vê
 
 No projeto Docker do Dify, o volume típico é `docker/volumes/plugin_daemon` montado em **`/app/storage`** no serviço `plugin_daemon`.
 
@@ -78,7 +106,7 @@ mkdir -p docker/volumes/plugin_daemon/public_keys
 cp lm_db_schema_rag_signing.public.pem docker/volumes/plugin_daemon/public_keys/
 ```
 
-### 5.2 Variáveis de ambiente (exemplo)
+### 7.2 Variáveis de ambiente (exemplo)
 
 No `plugin_daemon` (por exemplo via `docker-compose.override.yaml`):
 
@@ -103,16 +131,15 @@ docker compose down && docker compose up -d
 
 ---
 
-## 6. Boas práticas
+## 8. Boas práticas
 
-1. **Rotação:** novo par de chaves → atualizar `.public.pem` no servidor e re-assinar releases; podes manter duas públicas em `THIRD_PARTY_SIGNATURE_VERIFICATION_PUBLIC_KEYS` durante a transição.
-2. **CI:** secret tipo `PLUGIN_SIGNING_PRIVATE_PEM` (conteúdo PEM completo); script que escreve para ficheiro temporário, assina, apaga o ficheiro no fim do job.
-3. **Não** commits de `.private.pem`; `.gitignore` deve ignorar `*.private.pem`.
-4. Alinha a versão do **dify-plugin** CLI com a do *plugin daemon* que corre no Dify, para evitar incompatibilidades de formato de assinatura.
+1. **Rotação:** novo par de chaves → atualizar `.public.pem` no servidor, atualizar o secret `PLUGIN_SIGNING_PRIVATE_PEM` no GitHub, e re-assinar releases; podes manter duas públicas em `THIRD_PARTY_SIGNATURE_VERIFICATION_PUBLIC_KEYS` durante a transição.
+2. **Não** commits de `.private.pem`; o `.gitignore` do repo ignora `*.private.pem`.
+3. Alinha a versão do **dify-plugin** CLI (releases do daemon) com a do *plugin daemon* no Dify.
 
 ---
 
-## 7. Relação com `FORCE_VERIFYING_SIGNATURE=false`
+## 9. Relação com `FORCE_VERIFYING_SIGNATURE=false`
 
 - **`false`:** desliga exigência de assinatura (rápido, menos seguro para ambientes expostos).
 - **Fluxo deste documento:** mantém verificação **ligada** e restringe a **pacotes assinados pelas tuas chaves** — é o caminho “seguro” para plugins próprios fora do marketplace oficial.

@@ -91,12 +91,18 @@ jobs:
           ls -la "$PKG"
           echo "package=$PKG" >> "$GITHUB_OUTPUT"
 
+      # `secrets` cannot be used in step `if:` — gate only on was_signed; skip verify in shell if public PEM empty.
       - name: Verify signature before upload (optional)
-        if: ${{ steps.pack.outputs.was_signed == 'true' && secrets.PLUGIN_SIGNING_PUBLIC_PEM != '' }}
+        if: ${{ steps.pack.outputs.was_signed == 'true' }}
         env:
           PLUGIN_SIGNING_PUBLIC_PEM: ${{ secrets.PLUGIN_SIGNING_PUBLIC_PEM }}
         run: |
+          set -euo pipefail
           PKG="${{ steps.pack.outputs.package }}"
+          if [ -z "${PLUGIN_SIGNING_PUBLIC_PEM:-}" ]; then
+            echo "Skip signature verify: PLUGIN_SIGNING_PUBLIC_PEM secret not set (optional)."
+            exit 0
+          fi
           printf '%s\n' "$PLUGIN_SIGNING_PUBLIC_PEM" > "$RUNNER_TEMP/verify.pub.pem"
           "$RUNNER_TEMP/bin/dify-plugin" signature verify "$PKG" -p "$RUNNER_TEMP/verify.pub.pem"
           rm -f "$RUNNER_TEMP/verify.pub.pem"

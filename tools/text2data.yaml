@@ -105,7 +105,7 @@ parameters:
     label:
       en_US: Top K Results
       zh_Hans: 检索结果数量
-      pt_BR: Top K resultados
+      pt_BR: Número de resultados (top K)
     human_description:
       en_US: Number of top results to retrieve from knowledge base
       zh_Hans: 从知识库检索的结果数量
@@ -260,6 +260,37 @@ parameters:
     default: 3
     min: 1
     max: 5
+
+  - name: ui_language
+    type: select
+    required: false
+    label:
+      en_US: Response language
+      zh_Hans: 回复语言
+      pt_BR: Idioma das mensagens
+    human_description:
+      en_US: Language for status messages in the chat (SQL steps, execution result, refiner, empty result).
+      zh_Hans: 聊天中状态消息的语言（SQL 步骤、执行结果、自动修复、空结果等）。
+      pt_BR: Idioma das mensagens de status no chat (etapas SQL, resultado, refinador, resultado vazio).
+    llm_description: Locale for user-visible tool messages. One of en_US, pt_BR, zh_Hans.
+    form: form
+    default: en_US
+    options:
+      - value: en_US
+        label:
+          en_US: English
+          zh_Hans: 英语
+          pt_BR: Inglês
+      - value: pt_BR
+        label:
+          en_US: Portuguese (Brazil)
+          zh_Hans: 葡萄牙语（巴西）
+          pt_BR: Português (Brasil)
+      - value: zh_Hans
+        label:
+          en_US: Chinese (Simplified)
+          zh_Hans: 简体中文
+          pt_BR: Chinês (simplificado)
 
 extra:
   python:

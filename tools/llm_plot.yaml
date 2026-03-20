@@ -63,10 +63,10 @@ parameters:
       zh_Hans: 大语言模型
       pt_BR: Modelo de LLM
     human_description:
-      en_US: The large language model  
+      en_US: The large language model used to analyze data and recommend chart settings.
       zh_Hans: 大语言模型
       pt_BR: Modelo de linguagem grande usado para analisar dados e recomendar o gráfico.
-    llm_description: The LLM model 
+    llm_description: The LLM model used for chart analysis and recommendations.
     form: form
 
 extra:

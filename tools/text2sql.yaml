@@ -106,7 +106,7 @@ parameters:
     label:
       en_US: Top K Results
       zh_Hans: 检索结果数量
-      pt_BR: Top K resultados
+      pt_BR: Número de resultados (top K)
     human_description:
       en_US: Number of top results to retrieve from knowledge base
       zh_Hans: 从知识库检索的结果数量

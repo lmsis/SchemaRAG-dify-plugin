@@ -2,9 +2,9 @@ identity:
   name: sql_executer
   author: joto
   label:
-    en_US: SQL Executer
+    en_US: SQL Executor
     zh_Hans: SQL 执行器
-    pt_BR: Executor de SQL
+    pt_BR: Executor SQL
 
 description:
   human:
@@ -58,15 +58,46 @@ parameters:
     type: number
     required: false
     label:
-      en_US: Max Line
+      en_US: Max rows
       zh_Hans: 最大行数
       pt_BR: Máximo de linhas
     human_description:
-      en_US: The maximum number of lines to return.
+      en_US: Maximum number of rows to return (caps result size and memory use).
       zh_Hans: 要返回的最大行数。防止查询数据过多导致内存问题。
-      pt_BR: Número máximo de linhas a retornar (evita uso excessivo de memória).
+      pt_BR: Número máximo de linhas a retornar (limita tamanho e uso de memória).
     llm_description: The maximum number of lines to include in the query results.
     form: llm
+
+  - name: ui_language
+    type: select
+    required: false
+    label:
+      en_US: Response language
+      zh_Hans: 回复语言
+      pt_BR: Idioma das mensagens
+    human_description:
+      en_US: Language for short status messages from this tool.
+      zh_Hans: 此工具简短状态消息的语言。
+      pt_BR: Idioma das mensagens curtas desta ferramenta.
+    llm_description: Locale for user-visible messages (en_US, pt_BR, zh_Hans).
+    form: form
+    default: en_US
+    options:
+      - value: en_US
+        label:
+          en_US: English
+          zh_Hans: 英语
+          pt_BR: Inglês
+      - value: pt_BR
+        label:
+          en_US: Portuguese (Brazil)
+          zh_Hans: 葡萄牙语（巴西）
+          pt_BR: Português (Brasil)
+      - value: zh_Hans
+        label:
+          en_US: Chinese (Simplified)
+          zh_Hans: 简体中文
+          pt_BR: Chinês (simplificado)
 
 extra:
   python:

@@ -18,6 +18,12 @@ from utils import (
     PerformanceConfig,
     format_numeric_values
 )
+from tools.tool_messages import (
+    normalize_ui_language,
+    t,
+    think_block_start,
+    think_block_end,
+)
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
@@ -86,6 +92,7 @@ class Text2DataTool(Tool):
                 enable_refiner = False
 
             max_refine_iterations = tool_parameters.get("max_refine_iterations", 3)
+            ui_lang = normalize_ui_language(tool_parameters.get("ui_language"))
 
             if not dataset_id:
                 self.logger.error("Error: dataset_id is required")
@@ -146,7 +153,7 @@ class Text2DataTool(Tool):
 
             self.logger.info("Generating SQL query...")
 
-            yield self.create_text_message(text="<think>\n💭 Generating SQL query\n\n")
+            yield self.create_text_message(text=think_block_start(ui_lang))
 
             try:
                 system_prompt = text2sql_prompt._build_system_prompt(dialect=dialect)
@@ -195,7 +202,7 @@ class Text2DataTool(Tool):
 
             except Exception as e:
                 self.logger.error(f"Error while generating SQL: {str(e)}")
-                yield self.create_text_message(text="</think>\n")
+                yield self.create_text_message(text=think_block_end(1))
                 raise
 
             self.logger.info("Executing SQL query...")
@@ -205,15 +212,21 @@ class Text2DataTool(Tool):
                     self.db_type, self.db_host, self.db_port,
                     self.db_user, self.db_password, self.db_name, sql_query
                 )
-                yield self.create_text_message(text=f"✅ Execution succeeded\n\nReturned {len(results)} row(s)\n\n")
+                yield self.create_text_message(
+                    text=t(ui_lang, "execution_succeeded_rows", n=len(results))
+                )
 
             except Exception as e:
                 self.logger.error(f"SQL execution error: {str(e)}")
-                yield self.create_text_message(text=f"❌ Execution failed\n\n{str(e)}\n\n")
+                yield self.create_text_message(
+                    text=t(ui_lang, "execution_failed_prefix")
+                    + str(e)
+                    + t(ui_lang, "execution_failed_suffix")
+                )
 
                 if enable_refiner:
                     self.logger.info("SQL execution failed, starting SQL Refiner...")
-                    yield self.create_text_message(text="\n🔧 Auto-fix in progress...\n")
+                    yield self.create_text_message(text=t(ui_lang, "auto_fix_progress"))
 
                     try:
                         refiner = SQLRefiner(
@@ -244,7 +257,9 @@ class Text2DataTool(Tool):
                         if success:
                             self.logger.info(f"SQL refinement succeeded after {len(error_history)} iteration(s)")
                             yield self.create_text_message(
-                                text=f"✨ Refined successfully ({len(error_history)} attempt(s))\n\n{refined_sql}\n\n"
+                                text=t(ui_lang, "refine_success_prefix", n=len(error_history))
+                                + refined_sql
+                                + t(ui_lang, "refine_success_suffix")
                             )
 
                             results, columns = self.db_service.execute_query(
@@ -253,7 +268,9 @@ class Text2DataTool(Tool):
                             )
 
                             sql_query = refined_sql
-                            yield self.create_text_message(text=f"✅ Execution succeeded\n\nReturned {len(results)} row(s)\n\n")
+                            yield self.create_text_message(
+                                text=t(ui_lang, "execution_succeeded_rows", n=len(results))
+                            )
 
                         else:
                             error_report = refiner.format_refiner_result(
@@ -264,22 +281,22 @@ class Text2DataTool(Tool):
                                 iterations=len(error_history)
                             )
                             self.logger.error(f"SQL refinement failed: {error_report}")
-                            yield self.create_text_message(text="</think>\n")
+                            yield self.create_text_message(text=think_block_end(1))
                             raise ValueError(f"SQL execution failed and auto-fix failed:\n\n{error_report}")
 
                     except Exception as refiner_error:
                         self.logger.error(f"SQL Refiner error: {str(refiner_error)}")
-                        yield self.create_text_message(text="</think>\n")
+                        yield self.create_text_message(text=think_block_end(1))
                         raise ValueError(f"SQL execution failed: {str(e)}\n\nRefiner also failed: {str(refiner_error)}")
                 else:
-                    yield self.create_text_message(text="</think>\n")
+                    yield self.create_text_message(text=think_block_end(1))
                     raise
 
-            yield self.create_text_message(text="</think>\n\n")
+            yield self.create_text_message(text=think_block_end(2))
 
             result_count = len(results)
             if result_count == 0:
-                yield self.create_text_message("📊 **Query result**\n\nQuery ran successfully but returned no rows")
+                yield self.create_text_message(t(ui_lang, "query_result_empty"))
                 return
 
             if result_count > max_rows:
@@ -289,7 +306,9 @@ class Text2DataTool(Tool):
             formatted_results = self._format_numeric_values(results)
 
             if output_format == "summary":
-                yield from self._handle_summary_output(formatted_results, columns, content, llm_model)
+                yield from self._handle_summary_output(
+                    formatted_results, columns, content, llm_model, ui_lang
+                )
             else:
                 try:
                     formatted_output = self.db_service._format_output(formatted_results, columns, output_format)
@@ -304,8 +323,14 @@ class Text2DataTool(Tool):
             self.logger.error(f"Execution error: {str(e)}")
             raise ValueError(f"Execution error: {str(e)}")
 
-    def _handle_summary_output(self, formatted_results: List[Dict], columns: List[str],
-                               content: str, llm_model: Any) -> Generator[ToolInvokeMessage]:
+    def _handle_summary_output(
+        self,
+        formatted_results: List[Dict],
+        columns: List[str],
+        content: str,
+        llm_model: Any,
+        ui_lang: str,
+    ) -> Generator[ToolInvokeMessage]:
         """Summary output mode: LLM summarizes tabular results."""
         self.logger.info("Generating data summary...")
 
@@ -322,7 +347,7 @@ class Text2DataTool(Tool):
                 model_config=llm_model,
                 prompt_messages=[
                     SystemPromptMessage(content=summary_system_prompt),
-                    UserPromptMessage(content="Please produce a concise summary of the data above."),
+                    UserPromptMessage(content=t(ui_lang, "summary_user_prompt")),
                 ],
                 stream=True,
             )

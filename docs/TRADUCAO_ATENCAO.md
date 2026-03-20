@@ -37,7 +37,19 @@ Este documento resume o que foi alterado na internacionalização do plugin Sche
 - **`uv run pytest` / `uv sync`** neste repositório pode falhar em **macOS ARM** por causa do pacote **`dmpython`** (Dameng), que não disponibiliza wheel para essa plataforma. Isto é uma limitação de ambiente, não da tradução.
 - Foi executado **`python3 -m compileall`** sobre o projeto para validar sintaxe Python.
 
+## Mensagens no chat (EN / pt-BR / zh)
+
+- Ficheiro central: **`tools/tool_messages.py`** — chaves `TOOL_UI_STRINGS` com `en_US`, `pt_BR`, `zh_Hans`.
+- Parâmetro opcional **`ui_language`** nas tools **Text to Data**, **SQL Executor** e **SQL Executor (custom)** (`text2data.yaml`, `sql_executer.yaml`, `sql_executer_cust.yaml`): valor `en_US` (padrão), `pt_BR` ou `zh_Hans`. Controla textos de estado devolvidos ao chat (passos de SQL, sucesso/falha, refinador, resultado vazio, etc.).
+- Funções auxiliares: `t()`, `think_block_start()`, `think_block_end()`, `normalize_ui_language()`.
+
+## Revisão de `pt_BR` nos YAML
+
+- Foram corrigidos rótulos em inglês incorretos ou genéricos: por exemplo **SQL Executer → SQL Executor**, **Max Line → Max rows**, **Top K** em PT como **Número de resultados (top K)**, tool custom **Custom SQL executor**.
+- Onde `pt_BR` coincide com nomes próprios (**MySQL**, **JSON**, **Markdown**), mantém-se igual ao inglês por convenção.
+
 ## Manutenção futura
 
 - Ao adicionar novas tools ou credenciais no `provider.yaml`, repetir o trio **`en_US` / `zh_Hans` / `pt_BR`** para labels e descrições humanas.
+- Novas mensagens visíveis no chat: adicionar chave em **`tools/tool_messages.py`** e usar `t(ui_lang, ...)` com **`ui_language`** exposto no YAML se aplicável.
 - Novos comentários no código: preferir **inglês** para consistência com o restante código traduzido.

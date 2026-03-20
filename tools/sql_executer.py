@@ -23,6 +23,7 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 from service.database_service import DatabaseService
 from dify_plugin.config.logger_format import plugin_logger_handler
 from tools.parameter_validator import validate_and_extract_sql_executer_parameters
+from tools.tool_messages import normalize_ui_language, t
 
 
 class SQLExecuterTool(Tool):
@@ -104,9 +105,11 @@ class SQLExecuterTool(Tool):
         """
         Execute SQL queries and return results in specified format.
         """
+        ui_lang = normalize_ui_language(tool_parameters.get("ui_language"))
+
         if not self._config_validated:
             yield self.create_text_message(
-                "Error: database configuration is incomplete or invalid; check provider settings"
+                t(ui_lang, "sql_executer_db_config_error")
             )
             return
 
@@ -145,7 +148,7 @@ class SQLExecuterTool(Tool):
 
             result_count = len(results)
             if result_count == 0:
-                yield self.create_text_message("Query ran successfully but returned no rows")
+                yield self.create_text_message(t(ui_lang, "sql_executer_no_rows"))
                 return
 
             if result_count > max_rows:

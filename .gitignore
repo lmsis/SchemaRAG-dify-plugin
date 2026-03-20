@@ -177,5 +177,7 @@ cython_debug/
 
 # plugins
 *.difypkg
+# Dify plugin signing — never commit private keys
+*.private.pem
 
 /output

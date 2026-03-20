@@ -26,4 +26,4 @@ Configure the provider in Dify, run the schema build, then attach the generated 
 
 ## Self-hosted: install from GitHub / signature error
 
-Installing the `.difypkg` from this repo’s releases may fail with **bad signature** if Dify has plugin verification enabled. Fix: set `FORCE_VERIFYING_SIGNATURE=false` in the Dify `docker/.env` (and ensure the plugin daemon receives it), then restart containers — see [docs/GITHUB_INSTALL_PLUGIN.md](docs/GITHUB_INSTALL_PLUGIN.md#erro-bad-signature-plugin-verification).
+Installing the `.difypkg` from this repo’s releases may fail with **bad signature** if Dify has plugin verification enabled. Options: (1) set `FORCE_VERIFYING_SIGNATURE=false` for trusted internal builds — [docs/GITHUB_INSTALL_PLUGIN.md](docs/GITHUB_INSTALL_PLUGIN.md#erro-bad-signature-plugin-verification); (2) keep verification on and **sign** packages with your key pair — [docs/PLUGIN_SIGNING.md](docs/PLUGIN_SIGNING.md).

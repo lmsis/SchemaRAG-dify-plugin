@@ -75,6 +75,6 @@ Mensagem típica: `PluginDaemonBadRequestError: plugin verification has been ena
 
 > **Segurança:** com `false`, o daemon aceita pacotes não assinados como o deste repositório. Usa só em ambientes onde confias no `.difypkg` (ex.: a tua própria release no GitHub).
 
-### Opção B — Manter verificação e assinar o pacote
+### Opção B — Manter verificação e assinar o pacote (recomendado para produção)
 
-Se precisas de verificação ativa, segue a documentação oficial para **par de chaves e assinatura** do plugin, por exemplo: [Third-party signature verification](https://docs.dify.ai/plugin-dev-en/0312-third-party-signature-verification) (comando `dify signature` no CLI, conforme a versão do *dify-plugin-daemon*).
+Guia completo neste repositório: **[docs/PLUGIN_SIGNING.md](PLUGIN_SIGNING.md)** (par de chaves, `signature sign` / `verify`, variáveis no `plugin_daemon`). Documentação oficial Dify: [signing plugins for third-party verification](https://docs.dify.ai/plugins/publish-plugins/signing-plugins-for-third-party-signature-verification).

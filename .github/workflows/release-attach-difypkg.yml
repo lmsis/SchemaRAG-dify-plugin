@@ -1,15 +1,23 @@
 # Builds lm_db_schema_rag-{version}.difypkg and uploads it to THIS repo's GitHub Release.
 # Dify "Install from GitHub" only lists .difypkg assets on the release — without this step the package dropdown stays empty.
 #
-# Optional signing: set repo secret PLUGIN_SIGNING_PRIVATE_PEM (full PEM of the private key).
-# See docs/PLUGIN_SIGNING.md — upload is always named *.difypkg (signed content replaces unsigned).
+# Signing (optional):
+#   PLUGIN_SIGNING_PRIVATE_PEM — full PEM of private key (signs the .difypkg in CI)
+#   PLUGIN_SIGNING_PUBLIC_PEM  — optional; if set with private, runs `signature verify` before upload
+# See docs/PLUGIN_SIGNING.md
 #
-# CLI version: 0.0.6 has no `signature` subcommand; pin a current release that supports `signature sign`.
+# CLI 0.0.6 has no `signature` subcommand; pin matches recent daemon releases.
 name: Attach difypkg to release
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag of an existing release (e.g. v1.0.0) — re-build and re-upload .difypkg"
+        required: true
+        default: "v1.0.0"
 
 env:
   DIFY_PLUGIN_DAEMON_VERSION: "0.5.4"
@@ -20,8 +28,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Resolve release tag
+        id: rel
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using tag: $TAG"
+
       - name: Checkout release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.rel.outputs.tag }}
 
       - name: Download dify-plugin CLI
         run: |
@@ -60,19 +81,32 @@ jobs:
               exit 1
             fi
             mv -f "$SIGNED" "$PKG"
-            echo "Signed $PKG for third-party verification on Dify."
+            echo "::notice::Package was signed in CI (secret PLUGIN_SIGNING_PRIVATE_PEM)."
+            echo "was_signed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::PLUGIN_SIGNING_PRIVATE_PEM not set — release asset is UNSIGNED. See docs/PLUGIN_SIGNING.md"
+            echo "::warning::PLUGIN_SIGNING_PRIVATE_PEM not set — uploading UNSIGNED .difypkg. Dify with FORCE_VERIFYING_SIGNATURE=true will reject it. See docs/PLUGIN_SIGNING.md"
+            echo "was_signed=false" >> "$GITHUB_OUTPUT"
           fi
 
           ls -la "$PKG"
           echo "package=$PKG" >> "$GITHUB_OUTPUT"
 
+      - name: Verify signature before upload (optional)
+        if: ${{ steps.pack.outputs.was_signed == 'true' && secrets.PLUGIN_SIGNING_PUBLIC_PEM != '' }}
+        env:
+          PLUGIN_SIGNING_PUBLIC_PEM: ${{ secrets.PLUGIN_SIGNING_PUBLIC_PEM }}
+        run: |
+          PKG="${{ steps.pack.outputs.package }}"
+          printf '%s\n' "$PLUGIN_SIGNING_PUBLIC_PEM" > "$RUNNER_TEMP/verify.pub.pem"
+          "$RUNNER_TEMP/bin/dify-plugin" signature verify "$PKG" -p "$RUNNER_TEMP/verify.pub.pem"
+          rm -f "$RUNNER_TEMP/verify.pub.pem"
+          echo "signature verify OK for $PKG"
+
       - name: Upload to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
+          gh release upload "${{ steps.rel.outputs.tag }}" \
             "${{ steps.pack.outputs.package }}" \
             --repo "${{ github.repository }}" \
             --clobber

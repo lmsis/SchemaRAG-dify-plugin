@@ -66,12 +66,13 @@ O workflow **`.github/workflows/release-attach-difypkg.yml`**, ao publicar uma *
 
 | Secret | Conteúdo |
 |--------|----------|
-| **`PLUGIN_SIGNING_PRIVATE_PEM`** | Texto completo do ficheiro **`.private.pem`** (incluindo linhas `BEGIN` / `END`). Usa “New repository secret” e cola o PEM em **multilinha**. |
+| **`PLUGIN_SIGNING_PRIVATE_PEM`** | Texto completo do **`.private.pem`** (linhas `BEGIN` / `END`). Secret **multilinha**. Sem isto, o `.difypkg` na release fica **sem assinatura** e o Dify com verificação ligada **rejeita**. |
+| **`PLUGIN_SIGNING_PUBLIC_PEM`** | Opcional. Conteúdo do **`.public.pem`** do **mesmo** par. Se estiver definido **e** a privada também, o CI corre **`signature verify`** antes do upload (apanha PEM trocado ou corrupto). |
 
-- Com o secret definido, o artefacto enviado para a release continua a chamar-se `{name}-{version}.difypkg`, mas o conteúdo é **já assinado** (o CI substitui o pacote não assinado após `signature sign`).
-- **Sem** o secret, o workflow emite um aviso e faz upload do pacote **sem assinatura** (comportamento anterior).
+- Com a **privada** definida, o ficheiro na release mantém o nome `{name}-{version}.difypkg`, mas o conteúdo fica **assinado**.
+- **Regerar o asset** sem nova versão: **Actions** → **Attach difypkg to release** → **Run workflow** → `tag` = ex. `v1.0.0`.
 
-**O que tens de fazer uma vez:** gerar o par de chaves (secção 2), colocar a **privada** no secret acima, e a **pública** no servidor Dify (secção 6).
+**O que tens de fazer uma vez:** gerar o par (secção 2), secret da **privada** no GitHub, ficheiro da **pública** no volume do Dify + env `THIRD_PARTY_*` (secção 7).
 
 ---
 
@@ -128,6 +129,49 @@ Reinicia:
 cd docker
 docker compose down && docker compose up -d
 ```
+
+---
+
+## Diagnóstico: ainda aparece **bad signature** no Dify
+
+O instalador valida o `.difypkg` no **plugin daemon**. Este erro quase sempre é **configuração**, não o “nome” do ficheiro na UI.
+
+### 1) O ficheiro na GitHub Release está mesmo **assinado**?
+
+No GitHub: **Actions** → workflow **“Attach difypkg to release”** → abre a última execução para a tag **`v1.0.0`** (ou a que estiveres a usar).
+
+- Se vires **`::warning:: PLUGIN_SIGNING_PRIVATE_PEM not set`** → o artefacto foi enviado **sem assinatura**. Com `FORCE_VERIFYING_SIGNATURE=true`, **vai falhar sempre**.
+  - Cria o secret **`PLUGIN_SIGNING_PRIVATE_PEM`** (PEM completo da chave privada) e volta a gerar o asset: **Actions** → **Attach difypkg to release** → **Run workflow** → `tag` = `v1.0.0` (este repo suporta reexecução manual).
+
+- Se vires **`Package was signed in CI`** → o CI assinou; o problema costuma ser o servidor Dify (passos abaixo).
+
+Opcional: adiciona também o secret **`PLUGIN_SIGNING_PUBLIC_PEM`** (conteúdo do `.public.pem` **que corresponde** à privada do secret). O CI corre então **`signature verify`** antes do upload — se isto falhar, o PEM no GitHub não bate certo com a privada.
+
+### 2) No Dify: chave **pública** e variáveis certas?
+
+Só **assinar** no CI não chega: o daemon tem de **confiar na tua chave pública**.
+
+Tens de ter **ao mesmo tempo** (valores exemplificativos):
+
+| Variável | Valor típico |
+|----------|----------------|
+| `FORCE_VERIFYING_SIGNATURE` | `true` |
+| `THIRD_PARTY_SIGNATURE_VERIFICATION_ENABLED` | `true` |
+| `THIRD_PARTY_SIGNATURE_VERIFICATION_PUBLIC_KEYS` | Caminho **dentro do contentor** para o `.public.pem` (ex.: `/app/storage/public_keys/o_teu_ficheiro.public.pem`) |
+
+Erros frequentes:
+
+- **`THIRD_PARTY_SIGNATURE_VERIFICATION_ENABLED=false` ou omitida** — o daemon pode só aceitar assinaturas “oficiais” do marketplace, e o teu pacote **nunca** passa.
+- **Ficheiro `.public.pem` no host mas caminho errado no contentor** — o caminho na env tem de ser onde o ficheiro aparece **dentro** do `plugin_daemon` (muitas vezes sob `/app/storage/...`).
+- **Chave pública no servidor ≠ par da chave privada usada no GitHub** — gera de novo o par, atualiza secret + ficheiro no volume + reinicia o daemon.
+
+### 3) Versão do plugin daemon
+
+Alinha a imagem / binário do **plugin daemon** do Dify com uma linha recente (a mesma família que o CLI **0.5.x** usado no CI). Muito antigo pode comportar-se mal com o formato de assinatura atual.
+
+### 4) Caminho rápido só para testar
+
+Só em ambiente em que aceites o risco: `FORCE_VERIFYING_SIGNATURE=false` no `.env` do Docker (ver [GITHUB_INSTALL_PLUGIN.md](GITHUB_INSTALL_PLUGIN.md#erro-bad-signature-plugin-verification)).
 
 ---
 

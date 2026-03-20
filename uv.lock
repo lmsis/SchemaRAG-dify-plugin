@@ -219,6 +219,18 @@ wheels = [
 ]
 
 [[package]]
+name = "dmsqlalchemy"
+version = "2.0.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dmpython" },
+    { name = "sqlalchemy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/45/9616f4bc11fbb57757a7419436a77596561479149d3727d340eab0477df1/dmsqlalchemy-2.0.11-py3-none-any.whl", hash = "sha256:07fe8663a2e7c57a1ab8688bd7b258b65a9102690eadff6b65c186f5ad9a47b1", size = 58630, upload-time = "2025-12-10T02:40:29.589Z" },
+]
+
+[[package]]
 name = "dpkt"
 version = "1.9.8"
 source = { registry = "https://pypi.org/simple" }
@@ -971,6 +983,7 @@ dependencies = [
     { name = "dify-client" },
     { name = "dify-plugin" },
     { name = "dmpython" },
+    { name = "dmsqlalchemy" },
     { name = "httpx" },
     { name = "openpyxl" },
     { name = "oracledb" },
@@ -990,6 +1003,7 @@ requires-dist = [
     { name = "dify-client" },
     { name = "dify-plugin" },
     { name = "dmpython", specifier = ">=2.5.22" },
+    { name = "dmsqlalchemy", specifier = ">=2.0.0" },
     { name = "httpx" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "oracledb" },

@@ -133,7 +133,7 @@ workflow:
     - data:
         desc: ''
         selected: false
-        title: 开始
+        title: Start
         type: start
         variables: []
       height: 52
@@ -156,7 +156,7 @@ workflow:
           {{#1762430238923.text#}}'
         desc: ''
         selected: false
-        title: 直接回复
+        title: Direct reply
         type: answer
         variables: []
       height: 141
@@ -593,7 +593,7 @@ workflow:
         provider_name: joto/schemarag/schemarag
         provider_type: builtin
         selected: false
-        title: 文本转SQL
+        title: Text to SQL
         tool_configurations:
           cache_enabled:
             type: constant
@@ -624,8 +624,8 @@ workflow:
           top_k:
             type: constant
             value: 5
-        tool_description: 使用数据库架构知识库将自然语言问题转换为SQL查询
-        tool_label: 文本转SQL
+        tool_description: Convert natural language questions to SQL using the schema knowledge base
+        tool_label: Text to SQL
         tool_name: text2sql
         tool_node_version: '2'
         tool_parameters:
@@ -755,13 +755,13 @@ workflow:
         provider_name: joto/schemarag/schemarag
         provider_type: builtin
         selected: false
-        title: SQL执行器
+        title: SQL executer
         tool_configurations:
           output_format:
             type: constant
             value: json
-        tool_description: 执行SQL查询并从数据库获取结果。
-        tool_label: SQL执行器
+        tool_description: Run the SQL query and fetch results from the database.
+        tool_label: SQL executer
         tool_name: sql_executer
         tool_node_version: '2'
         tool_parameters:
@@ -926,7 +926,7 @@ workflow:
         provider_name: joto/schemarag/schemarag
         provider_type: builtin
         selected: false
-        title: 数据总结
+        title: Data summary
         tool_configurations:
           llm:
             type: constant
@@ -936,8 +936,8 @@ workflow:
               model: gpt-4.1
               model_type: llm
               provider: langgenius/openai_api_compatible/openai_api_compatible
-        tool_description: 使用可自定义规则分析和总结数据内容，提供洞察
-        tool_label: 数据总结
+        tool_description: Analyze and summarize data with customizable rules and insights
+        tool_label: Data summary
         tool_name: data_summary
         tool_node_version: '2'
         tool_parameters:
@@ -1085,7 +1085,7 @@ workflow:
         provider_name: joto/schemarag/schemarag
         provider_type: builtin
         selected: false
-        title: LLM 智能图表生成器
+        title: LLM chart generator
         tool_configurations:
           data:
             type: mixed
@@ -1098,8 +1098,8 @@ workflow:
               model: gpt-4.1
               model_type: llm
               provider: langgenius/openai_api_compatible/openai_api_compatible
-        tool_description: 基于用户问题和数据，通过 LLM 智能分析生成图表。支持柱状图、折线图、饼图、散点图和直方图。
-        tool_label: LLM 智能图表生成器
+        tool_description: Generate charts from the user question and data via LLM analysis (bar, line, pie, scatter, histogram).
+        tool_label: LLM chart generator
         tool_name: llm_plot
         tool_node_version: '2'
         tool_parameters:

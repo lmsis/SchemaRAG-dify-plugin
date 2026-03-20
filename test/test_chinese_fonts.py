@@ -1,6 +1,7 @@
 """
-测试中文字体支持
-该脚本用于测试图表中文字体显示功能
+Chinese font rendering for charts.
+
+Verifies CJK labels render correctly in generated chart files.
 """
 
 import sys
@@ -8,11 +9,10 @@ import os
 from pathlib import Path
 import logging
 
-# 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# 添加项目根目录到Python路径
+# Project root on path
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -20,15 +20,14 @@ if str(project_root) not in sys.path:
 from core.llm_plot import generate_chart
 
 def test_chinese_fonts():
-    """测试中文字体支持"""
-    logger.info("开始测试中文字体支持...")
-    
-    # 确保输出目录存在
+    """Generate sample charts with CJK text (font smoke test)."""
+    logger.info("Starting Chinese font smoke test...")
+
     output_dir = Path("output/charts")
     output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # 测试1: 带有中文的柱状图
-    logger.info("生成中文柱状图...")
+
+    # Bar chart with CJK labels
+    logger.info("Generating bar chart with CJK labels...")
     bar_config = {
         "chart_type": "bar",
         "title": "各地区销售业绩对比",
@@ -45,17 +44,17 @@ def test_chinese_fonts():
             "dpi": 100
         }
     }
-    
+
     try:
         chart_path = generate_chart(bar_config, str(output_dir))
-        logger.info(f"中文柱状图生成成功: {chart_path}")
-        print(f"✅ 中文柱状图已生成: {chart_path}")
+        logger.info(f"Bar chart OK: {chart_path}")
+        print(f"✅ Bar chart (CJK): {chart_path}")
     except Exception as e:
-        logger.error(f"中文柱状图生成失败: {str(e)}")
-        print(f"❌ 中文柱状图生成失败: {str(e)}")
-    
-    # 测试2: 带有中文的饼图
-    logger.info("生成中文饼图...")
+        logger.error(f"Bar chart failed: {str(e)}")
+        print(f"❌ Bar chart (CJK) failed: {str(e)}")
+
+    # Pie chart with CJK labels
+    logger.info("Generating pie chart with CJK labels...")
     pie_config = {
         "chart_type": "pie",
         "title": "市场份额分布情况",
@@ -68,17 +67,17 @@ def test_chinese_fonts():
             "dpi": 100
         }
     }
-    
+
     try:
         chart_path = generate_chart(pie_config, str(output_dir))
-        logger.info(f"中文饼图生成成功: {chart_path}")
-        print(f"✅ 中文饼图已生成: {chart_path}")
+        logger.info(f"Pie chart OK: {chart_path}")
+        print(f"✅ Pie chart (CJK): {chart_path}")
     except Exception as e:
-        logger.error(f"中文饼图生成失败: {str(e)}")
-        print(f"❌ 中文饼图生成失败: {str(e)}")
-    
-    # 测试3: 带有中文的折线图
-    logger.info("生成中文折线图...")
+        logger.error(f"Pie chart failed: {str(e)}")
+        print(f"❌ Pie chart (CJK) failed: {str(e)}")
+
+    # Line chart with CJK labels
+    logger.info("Generating line chart with CJK labels...")
     line_config = {
         "chart_type": "line",
         "title": "各季度产品销量趋势",
@@ -105,19 +104,19 @@ def test_chinese_fonts():
             "dpi": 100
         }
     }
-    
+
     try:
         chart_path = generate_chart(line_config, str(output_dir))
-        logger.info(f"中文折线图生成成功: {chart_path}")
-        print(f"✅ 中文折线图已生成: {chart_path}")
+        logger.info(f"Line chart OK: {chart_path}")
+        print(f"✅ Line chart (CJK): {chart_path}")
     except Exception as e:
-        logger.error(f"中文折线图生成失败: {str(e)}")
-        print(f"❌ 中文折线图生成失败: {str(e)}")
-    
-    print("\n测试总结:")
-    print("- 如果图表生成成功且中文字符显示正常，则表示修复成功")
-    print("- 图表文件保存在:", output_dir.absolute())
-    print("- 请检查生成的图表，确认中文是否正常显示")
+        logger.error(f"Line chart failed: {str(e)}")
+        print(f"❌ Line chart (CJK) failed: {str(e)}")
+
+    print("\nSummary:")
+    print("- If charts were created and CJK glyphs look correct, font setup is OK.")
+    print("- Output directory:", output_dir.absolute())
+    print("- Open the files to confirm CJK rendering.")
 
 if __name__ == "__main__":
     test_chinese_fonts()

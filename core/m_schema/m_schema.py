@@ -100,7 +100,7 @@ class MSchema:
                 output.append(f"# Table: {table_name}")
 
         field_lines = []
-        # 处理表中的每一个字段
+        # Each column in the table
         for field_name, field_info in table_info["fields"].items():
             if (
                 selected_columns is not None
@@ -115,12 +115,12 @@ class MSchema:
             else:
                 pass
 
-            ## 打上主键标识
+            ## Primary key marker
             is_primary_key = field_info.get("primary_key", False)
             if is_primary_key:
                 field_line += ", Primary Key"
 
-            # 如果有示例，添加上
+            # Append value examples when present
             if len(field_info.get("examples", [])) > 0 and example_num > 0:
                 examples = field_info["examples"]
                 examples = [s for s in examples if s is not None]
@@ -161,9 +161,9 @@ class MSchema:
         show_type_detail=False,
     ) -> str:
         """
-        convert to a MSchema string.
-        selected_tables: 默认为None，表示选择所有的表
-        selected_columns: 默认为None，表示所有列全选，格式['table_name.column_name']
+        Convert to an MSchema string.
+        selected_tables: None = all tables
+        selected_columns: None = all columns; else list like ['table_name.column_name']
         """
         output = []
 
@@ -176,7 +176,7 @@ class MSchema:
             selected_columns = [s.lower() for s in selected_columns]
             selected_tables = [s.split(".")[0].lower() for s in selected_columns]
 
-        # 依次处理每一个表
+        # Each selected table
         for table_name, table_info in self.tables.items():
             if selected_tables is None or table_name.lower() in selected_tables:
                 column_names = list(table_info["fields"].keys())
@@ -194,7 +194,7 @@ class MSchema:
                     )
                 )
 
-        # 添加外键信息，选择table_type为view时不展示外键
+        # Foreign keys (views may omit in downstream consumers)
         if self.foreign_keys:
             output.append("# 【Foreign keys】")
             for fk in self.foreign_keys:

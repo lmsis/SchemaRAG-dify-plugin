@@ -25,14 +25,14 @@ class DifyClient:
                     method, url, json=json, params=params, headers=headers
                 )
 
-            logger.info(f"{response.status_code}  {method}  发送请求到: {url}")
+            logger.info(f"{response.status_code}  {method}  request to: {url}")
 
             if response.status_code >= 400:
-                error_msg = f"API请求失败: HTTP {response.status_code}"
+                error_msg = f"API request failed: HTTP {response.status_code}"
                 try:
                     error_data = response.json()
                     if isinstance(error_data, dict):
-                        error_msg += f" - {error_data.get('message', '未知错误')}"
+                        error_msg += f" - {error_data.get('message', 'Unknown error')}"
                 except Exception:
                     error_msg += f" - {response.text}"
                 raise ValueError(error_msg)
@@ -40,11 +40,11 @@ class DifyClient:
             return response
 
         except httpx.RequestError as e:
-            logger.error(f"请求异常: {str(e)}")
-            raise ValueError(f"API请求异常: {str(e)}")
+            logger.error(f"Request error: {str(e)}")
+            raise ValueError(f"API request error: {str(e)}")
         except Exception as e:
-            logger.error(f"未知异常: {str(e)}")
-            raise ValueError(f"未知错误: {str(e)}")
+            logger.error(f"Unexpected error: {str(e)}")
+            raise ValueError(f"Unexpected error: {str(e)}")
 
     def _send_request_with_files(self, method, endpoint, data, files):
         headers = {"Authorization": f"Bearer {self.api_key}"}
@@ -209,11 +209,11 @@ class KnowledgeBaseClient(DifyClient):
         return self.dataset_id
 
     def create_dataset(self, name: str, **kwargs):
-        """创建数据集
+        """Create a dataset.
 
         Args:
-            name: 数据集名称
-            **kwargs: 其他可选参数
+            name: Dataset display name
+            **kwargs: Optional API fields
         """
         data = {
             "name": name,
@@ -222,7 +222,7 @@ class KnowledgeBaseClient(DifyClient):
             "indexing_technique": kwargs.get("indexing_technique", "high_quality"),
         }
 
-        # 移除值为 None 的键
+        # Drop keys whose value is None
         data = {k: v for k, v in data.items() if v is not None}
 
         return self._send_request("POST", "/datasets", json=data)

@@ -1,7 +1,7 @@
 """
-SQL Refiner Service - SQL自动纠错服务
+SQL Refiner Service - automatic SQL error correction
 
-实现基于LLM的SQL错误自动修复功能，通过迭代反馈机制纠正SQL语法错误和逻辑错误
+Implements LLM-based SQL error repair via iterative feedback, correcting syntax and logic errors.
 """
 
 import re
@@ -14,13 +14,13 @@ from dify_plugin.entities.model.message import SystemPromptMessage, UserPromptMe
 
 class SQLRefiner:
     """
-    SQL自动纠错器
-    
-    通过LLM反馈循环自动修复SQL错误，支持：
-    - 语法错误修复
-    - 列名/表名映射
-    - 类型转换修正
-    - JOIN逻辑优化
+    Automatic SQL corrector.
+
+    Repairs SQL errors through an LLM feedback loop, supporting:
+    - Syntax error fixes
+    - Column/table name mapping
+    - Type casting corrections
+    - JOIN logic improvements
     """
     
     def __init__(
@@ -30,12 +30,12 @@ class SQLRefiner:
         logger: Optional[logging.Logger] = None
     ):
         """
-        初始化SQL Refiner
-        
+        Initialize SQL Refiner.
+
         Args:
-            db_service: 数据库服务实例
-            llm_session: Dify LLM会话对象
-            logger: 日志记录器
+            db_service: Database service instance
+            llm_session: Dify LLM session object
+            logger: Logger instance
         """
         self.db_service = db_service
         self.llm_session = llm_session
@@ -52,36 +52,36 @@ class SQLRefiner:
         max_iterations: int = 3
     ) -> Tuple[str, bool, List[Dict]]:
         """
-        迭代修复SQL错误
-        
+        Iteratively repair SQL errors.
+
         Args:
-            original_sql: 原始生成的SQL
-            schema_info: 数据库Schema信息
-            question: 用户原始问题
-            dialect: 数据库方言
-            db_config: 数据库配置字典
-            llm_model: LLM模型配置
-            max_iterations: 最大迭代次数
-            
+            original_sql: Originally generated SQL
+            schema_info: Database schema information
+            question: Original user question
+            dialect: SQL dialect
+            db_config: Database configuration dict
+            llm_model: LLM model configuration
+            max_iterations: Maximum number of iterations
+
         Returns:
-            (修复后的SQL, 是否成功, 错误历史列表)
+            (repaired SQL, success flag, error history list)
         """
-        self.logger.info(f"开始SQL自动修复流程，最大迭代次数: {max_iterations}")
+        self.logger.info(f"Starting SQL auto-repair, max iterations: {max_iterations}")
         
         current_sql = original_sql
         error_history = []
         
         for iteration in range(1, max_iterations + 1):
-            self.logger.info(f"SQL修复迭代 {iteration}/{max_iterations}")
+            self.logger.info(f"SQL repair iteration {iteration}/{max_iterations}")
             
-            # 验证SQL是否可以执行
+            # Validate whether SQL can execute
             is_valid, error_message = self._validate_sql(current_sql, db_config)
             
             if is_valid:
-                self.logger.info(f"SQL修复成功！迭代次数: {iteration}")
+                self.logger.info(f"SQL repair succeeded after {iteration} iteration(s)")
                 return current_sql, True, error_history
             
-            # 记录错误历史
+            # Record error history
             error_record = {
                 "iteration": iteration,
                 "sql": current_sql,
@@ -89,14 +89,14 @@ class SQLRefiner:
             }
             error_history.append(error_record)
             
-            self.logger.warning(f"第{iteration}次尝试失败: {error_message[:200]}")
+            self.logger.warning(f"Attempt {iteration} failed: {error_message[:200]}")
             
-            # 如果达到最大迭代次数，返回失败
+            # Stop if max iterations reached
             if iteration >= max_iterations:
-                self.logger.error(f"达到最大迭代次数({max_iterations})，SQL修复失败")
+                self.logger.error(f"Max iterations ({max_iterations}) reached; SQL repair failed")
                 return current_sql, False, error_history
             
-            # 使用LLM生成修复后的SQL
+            # Use LLM to produce repaired SQL
             try:
                 refined_sql = self._generate_refined_sql(
                     schema_info=schema_info,
@@ -105,26 +105,26 @@ class SQLRefiner:
                     error_message=error_message,
                     dialect=dialect,
                     iteration=iteration,
-                    error_history=error_history[:-1],  # 不包括当前错误
+                    error_history=error_history[:-1],  # exclude current error from history passed to LLM
                     llm_model=llm_model
                 )
                 
                 if not refined_sql or refined_sql.strip() == "":
-                    self.logger.error("LLM返回的修复SQL为空")
+                    self.logger.error("LLM returned empty repaired SQL")
                     return current_sql, False, error_history
                 
-                # 清理SQL
+                # Clean SQL
                 refined_sql = self._clean_sql(refined_sql)
                 
                 if refined_sql == current_sql:
-                    self.logger.warning("LLM返回的SQL与之前相同，可能陷入循环")
+                    self.logger.warning("LLM returned the same SQL as before; possible loop")
                     return current_sql, False, error_history
                 
                 current_sql = refined_sql
-                self.logger.info(f"生成新的修复SQL，长度: {len(current_sql)}")
+                self.logger.info(f"Generated new repaired SQL, length: {len(current_sql)}")
                 
             except Exception as e:
-                self.logger.error(f"生成修复SQL时发生异常: {str(e)}")
+                self.logger.error(f"Exception while generating repaired SQL: {str(e)}")
                 return current_sql, False, error_history
         
         return current_sql, False, error_history
@@ -135,20 +135,20 @@ class SQLRefiner:
         db_config: Dict[str, Any]
     ) -> Tuple[bool, str]:
         """
-        验证SQL是否可以成功执行（使用LIMIT 0避免返回大量数据）
-        
+        Check whether SQL can execute successfully (uses LIMIT 0 to avoid large result sets).
+
         Args:
-            sql: 待验证的SQL
-            db_config: 数据库配置
-            
+            sql: SQL to validate
+            db_config: Database configuration
+
         Returns:
-            (是否有效, 错误信息)
+            (is_valid, error_message)
         """
         try:
-            # 为SELECT查询添加LIMIT 0进行快速验证
+            # Add LIMIT 0 for SELECT queries for quick validation
             validation_sql = self._add_limit_for_validation(sql)
             
-            # 执行验证查询
+            # Run validation query
             _, _ = self.db_service.execute_query(
                 db_type=db_config['db_type'],
                 host=db_config['host'],
@@ -163,38 +163,38 @@ class SQLRefiner:
             
         except SQLAlchemyError as e:
             error_msg = str(e)
-            self.logger.debug(f"SQL验证失败: {error_msg[:300]}")
+            self.logger.debug(f"SQL validation failed: {error_msg[:300]}")
             return False, error_msg
             
         except Exception as e:
-            error_msg = f"SQL验证时发生未知错误: {str(e)}"
+            error_msg = f"Unknown error during SQL validation: {str(e)}"
             self.logger.error(error_msg)
             return False, error_msg
     
     def _add_limit_for_validation(self, sql: str) -> str:
         """
-        为SELECT查询添加LIMIT 0用于验证（避免返回大量数据）
-        
+        Append LIMIT 0 to SELECT queries for validation (avoids large result sets).
+
         Args:
-            sql: 原始SQL
-            
+            sql: Original SQL
+
         Returns:
-            添加LIMIT的SQL
+            SQL with LIMIT applied where appropriate
         """
         sql_lower = sql.lower().strip()
         
-        # 只对SELECT查询添加LIMIT
+        # Only add LIMIT for SELECT queries
         if not sql_lower.startswith('select'):
             return sql
         
-        # 如果已经有LIMIT，不再添加
+        # Do not add if LIMIT already present
         if 'limit' in sql_lower:
             return sql
         
-        # 移除末尾的分号
+        # Strip trailing semicolon
         sql = sql.rstrip(';').strip()
         
-        # 添加LIMIT 0
+        # Append LIMIT 0
         return f"{sql} LIMIT 0"
     
     def _generate_refined_sql(
@@ -209,22 +209,22 @@ class SQLRefiner:
         llm_model: Any
     ) -> str:
         """
-        使用LLM生成修复后的SQL
-        
+        Use LLM to generate repaired SQL.
+
         Args:
-            schema_info: Schema信息
-            question: 用户问题
-            failed_sql: 失败的SQL
-            error_message: 错误消息
-            dialect: 数据库方言
-            iteration: 当前迭代次数
-            error_history: 历史错误记录
-            llm_model: LLM模型配置
-            
+            schema_info: Schema information
+            question: User question
+            failed_sql: Failed SQL
+            error_message: Error message from the database
+            dialect: SQL dialect
+            iteration: Current iteration number
+            error_history: Prior error records
+            llm_model: LLM model configuration
+
         Returns:
-            修复后的SQL
+            Repaired SQL string
         """
-        # 构建Prompt
+        # Build prompts
         system_prompt = sql_refiner_prompt._build_refiner_system_prompt(dialect)
         user_prompt = sql_refiner_prompt._build_refiner_user_prompt(
             schema_info=schema_info,
@@ -236,9 +236,9 @@ class SQLRefiner:
             error_history=error_history
         )
         
-        self.logger.debug(f"调用LLM进行SQL修复，迭代: {iteration}")
+        self.logger.debug(f"Invoking LLM for SQL repair, iteration: {iteration}")
         
-        # 调用LLM
+        # Invoke LLM
         response = self.llm_session.model.llm.invoke(
             model_config=llm_model,
             prompt_messages=[
@@ -248,30 +248,30 @@ class SQLRefiner:
             stream=False,
         )
         
-        # 提取SQL
+        # Extract SQL from response
         refined_sql = ""
         if hasattr(response, "message") and response.message:
             refined_sql = response.message.content.strip() if response.message.content else ""
         
         if not refined_sql:
-            raise ValueError("LLM返回的修复SQL为空")
+            raise ValueError("LLM returned empty repaired SQL")
         
         return refined_sql
     
     def _clean_sql(self, sql: str) -> str:
         """
-        清理SQL查询（移除markdown格式等）
-        
+        Clean SQL text (remove markdown fences, etc.).
+
         Args:
-            sql: 原始SQL
-            
+            sql: Raw SQL text
+
         Returns:
-            清理后的SQL
+            Cleaned SQL
         """
         if not sql:
             return ""
         
-        # 移除markdown代码块
+        # Remove markdown code fences
         markdown_pattern = re.compile(r"```(?:sql)?\s*(.*?)\s*```", re.DOTALL | re.IGNORECASE)
         match = markdown_pattern.search(sql)
         
@@ -280,7 +280,7 @@ class SQLRefiner:
         else:
             cleaned_sql = sql.strip()
         
-        # 移除多余空白
+        # Collapse extra whitespace
         cleaned_sql = re.sub(r"\s+", " ", cleaned_sql).strip()
         
         return cleaned_sql
@@ -294,36 +294,36 @@ class SQLRefiner:
         iterations: int
     ) -> str:
         """
-        格式化Refiner结果为可读的报告
-        
+        Format refiner output as a human-readable report.
+
         Args:
-            original_sql: 原始SQL
-            refined_sql: 修复后的SQL
-            success: 是否成功
-            error_history: 错误历史
-            iterations: 实际迭代次数
-            
+            original_sql: Original SQL
+            refined_sql: Repaired SQL
+            success: Whether repair succeeded
+            error_history: Error history
+            iterations: Number of iterations performed
+
         Returns:
-            格式化的报告字符串
+            Formatted report string
         """
         if success:
             report = f"""
-【SQL自动修复成功】
+[SQL auto-repair succeeded]
 
-✅ 经过 {iterations} 次迭代，SQL已成功修复
+After {iterations} iteration(s), the SQL was repaired successfully.
 
-📝 修复后的SQL:
+Repaired SQL:
 {refined_sql}
 """
         else:
             report = f"""
-【SQL自动修复失败】
+[SQL auto-repair failed]
 
-❌ 经过 {iterations} 次尝试，仍无法修复SQL错误
+After {iterations} attempt(s), the SQL could not be repaired.
 
-🔍 错误历史:
+Error history:
 """
             for idx, err in enumerate(error_history, 1):
-                report += f"\n第{idx}次尝试:\n错误: {err.get('error', 'N/A')[:200]}\n"
+                report += f"\nAttempt {idx}:\nError: {err.get('error', 'N/A')[:200]}\n"
         
         return report.strip()

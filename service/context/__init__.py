@@ -1,7 +1,5 @@
 """
-上下文管理模块
-
-提供多轮对话记忆功能，支持优雅高效的上下文管理
+Context management for multi-turn conversation memory.
 """
 
 from .context_manager import ContextManager

@@ -7,8 +7,8 @@ identity:
     pt_BR: Schema RAG
   description:
     en_US: Automatically create database schema knowledge base to build RAGs. Nodes containing natural language to SQL functionality based on schemaRAG
-    zh_Hans: 自动创建数据库schema知识库构建RAG。包含基于schemaRAG的自然语言转SQL功能的节点
-    pt_BR: Construa um esquema para RAG no conjunto de dados Dify. Contém nós que executam a função text2sql com base no schemaRAG.
+    zh_Hans: 自动创建数据库 schema 知识库以构建 RAG。包含基于 schemaRAG 的自然语言转 SQL 功能的节点。
+    pt_BR: Cria automaticamente uma base de conhecimento do esquema do banco para RAG. Inclui nós de linguagem natural para SQL com base no schemaRAG.
   icon: logo.jpg
   tags:
     - business
@@ -21,7 +21,7 @@ credentials_for_provider:
     label:
       en_US: Dify API URI
       zh_Hans: Dify API 地址
-      pt_BR: Dify API URI
+      pt_BR: URI da API Dify
     placeholder:
       en_US: http://localhost/v1
       zh_Hans: http://localhost/v1
@@ -34,11 +34,11 @@ credentials_for_provider:
     label:
       en_US: Dify Dataset API key
       zh_Hans: Dify 知识库 API key
-      pt_BR: Dify Dataset API key
+      pt_BR: Chave API do dataset Dify
     placeholder:
       en_US: Please input your Dify Dataset API key
       zh_Hans: 请输入你的 Dify 知识库 API key
-      pt_BR: Please input your Dify Dataset API key
+      pt_BR: Informe sua chave API do dataset Dify
 
   db_type:
     type: select
@@ -46,7 +46,7 @@ credentials_for_provider:
     label:
       en_US: Database type
       zh_Hans: 数据库类型
-      pt_BR: Database type
+      pt_BR: Tipo de banco de dados
     options:
       - value: mysql
         label:
@@ -85,11 +85,11 @@ credentials_for_provider:
     label:
       en_US: Database Host
       zh_Hans: 数据库主机
-      pt_BR: Database Host
+      pt_BR: Host do banco
     placeholder:
       en_US: Database host address
-      zh_Hans: 数据库主机地址 
-      pt_BR: Database host address
+      zh_Hans: 数据库主机地址
+      pt_BR: Endereço do host do banco
 
   db_port:
     type: text-input
@@ -101,7 +101,7 @@ credentials_for_provider:
     placeholder:
       en_US: "Please input your database port (MySQL:3306, PostgreSQL:5432, MSSQL:1433, Oracle:1521, Dameng:5236, Doris:9030)"
       zh_Hans: "请输入数据库端口 (MySQL:3306, PostgreSQL:5432, MSSQL:1433, Oracle:1521, 达梦:5236, Doris:9030)"
-      pt_BR: "Please input your database port (MySQL:3306, PostgreSQL:5432, MSSQL:1433, Oracle:1521, Dameng:5236, Doris:9030)"
+      pt_BR: "Informe a porta (MySQL:3306, PostgreSQL:5432, MSSQL:1433, Oracle:1521, Dameng:5236, Doris:9030)"
     default: "3306"
 
   db_user:
@@ -110,11 +110,11 @@ credentials_for_provider:
     label:
       en_US: Database User
       zh_Hans: 数据库用户名
-      pt_BR: Database User
+      pt_BR: Usuário do banco
     placeholder:
-      en_US: Database username 
+      en_US: Database username
       zh_Hans: 数据库用户名
-      pt_BR: Database username 
+      pt_BR: Nome de usuário do banco
 
   db_password:
     type: secret-input
@@ -122,11 +122,11 @@ credentials_for_provider:
     label:
       en_US: Database Password
       zh_Hans: 数据库密码
-      pt_BR: Database Password
+      pt_BR: Senha do banco
     placeholder:
-      en_US: Database password 
+      en_US: Database password
       zh_Hans: 数据库密码
-      pt_BR: Database password 
+      pt_BR: Senha do banco
 
   db_name:
     type: text-input
@@ -134,7 +134,7 @@ credentials_for_provider:
     label:
       en_US: Database Name
       zh_Hans: 数据库名称
-      pt_BR: Database Name
+      pt_BR: Nome do banco
     placeholder:
       en_US: Database name
       zh_Hans: 数据库名称
@@ -159,11 +159,11 @@ credentials_for_provider:
     label:
       en_US: Tables Name
       zh_Hans: 数据表名称
-      pt_BR: Tables Name
+      pt_BR: Nomes das tabelas
     placeholder:
       en_US: Tables name(optional, multiple table names separated by commas)
       zh_Hans: 数据表名称(可选, 多个表名用逗号分隔)
-      pt_BR: Tables name(optional, multiple table names separated by commas)
+      pt_BR: Nomes das tabelas (opcional; várias separadas por vírgula)
 
 supported_app_types:
   - workflow

@@ -1,5 +1,5 @@
 """
-项目配置模块
+Project configuration module.
 """
 
 import os
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional
 from urllib.parse import quote_plus
 
-# 尝试导入dotenv，如果失败则忽略。在生产环境中，通常使用环境变量。
+# Try dotenv; ignore if missing. Production usually uses env vars only.
 try:
     from dotenv import load_dotenv
 
@@ -17,19 +17,19 @@ except ImportError:
 
 
 def get_env(key: str, default: Optional[str] = None) -> Optional[str]:
-    """从环境变量中获取值"""
+    """Read a string from the environment."""
     return os.environ.get(key, default)
 
 
 def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
-    """从环境变量中获取整数值"""
+    """Read an integer from the environment."""
     value = get_env(key)
     return int(value) if value is not None else default
 
 
 @dataclass
 class DatabaseConfig:
-    """数据库连接配置"""
+    """Database connection settings."""
 
     type: str = get_env("DB_TYPE", "mysql")
     host: str = get_env("DB_HOST", "localhost")
@@ -39,14 +39,14 @@ class DatabaseConfig:
     database: str = get_env("DB_NAME")
 
     def get_connection_string(self) -> str:
-        """获取数据库连接字符串"""
+        """Build SQLAlchemy connection URL."""
         if self.type == "sqlite":
             return f"sqlite:///{self.database}"
-        
-        # 对用户名和密码进行 URL 编码，处理特殊字符（如 @, #, $ 等）
+
+        # URL-encode user/password for special chars (@, #, $, etc.)
         encoded_user = quote_plus(self.user)
         encoded_password = quote_plus(self.password)
-        
+
         if self.type == "postgresql":
             return f"postgresql+psycopg2://{encoded_user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
         elif self.type == "mysql":
@@ -54,7 +54,7 @@ class DatabaseConfig:
         elif self.type == "mssql":
             return f"mssql+pymssql://{encoded_user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
         elif self.type == "oracle":
-            # Oracle 使用 service_name 格式
+            # Oracle uses service_name
             return f"oracle+oracledb://{encoded_user}:{encoded_password}@{self.host}:{self.port}/?service_name={self.database}"
         elif self.type == "dameng":
             return f"dm+dmPython://{encoded_user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
@@ -66,7 +66,7 @@ class DatabaseConfig:
 
 @dataclass
 class LoggerConfig:
-    """日志配置"""
+    """Logger settings."""
 
     log_level: str = get_env("LOG_LEVEL", "INFO")
     # log_file: Optional[str] = get_env("LOG_FILE", None)
@@ -74,7 +74,7 @@ class LoggerConfig:
 
 @dataclass
 class DifyUploadConfig:
-    """Dify上传配置"""
+    """Dify dataset upload settings."""
 
     api_key: str = get_env("DIFY_API_KEY")
     base_url: str = get_env("DIFY_BASE_URL", "https://api.dify.ai/v1")

@@ -1,6 +1,5 @@
 """
-LLM Plot 核心模块
-用于数据可视化和图表生成
+LLM Plot core: visualization and chart generation.
 """
 
 from .models import ChartRecommendation

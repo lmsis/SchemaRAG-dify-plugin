@@ -3,12 +3,14 @@ identity:
   author: joto
   label:
     en_US: SQL Executer
-    zh_Hans: SQL执行器
- 
+    zh_Hans: SQL 执行器
+    pt_BR: Executor de SQL
+
 description:
   human:
     en_US: Execute SQL queries and get results from the database.
-    zh_Hans: 执行SQL查询并从数据库获取结果。
+    zh_Hans: 执行 SQL 查询并从数据库获取结果。
+    pt_BR: Executa consultas SQL e retorna resultados do banco de dados.
   llm: A tool that executes SQL queries against the configured database and returns the results in either JSON or Markdown format.
 
 parameters:
@@ -17,10 +19,12 @@ parameters:
     required: true
     label:
       en_US: SQL Query
-      zh_Hans: SQL查询
+      zh_Hans: SQL 查询
+      pt_BR: Consulta SQL
     human_description:
       en_US: The SQL query to execute.
-      zh_Hans: 要执行的SQL查询语句。
+      zh_Hans: 要执行的 SQL 查询语句。
+      pt_BR: A consulta SQL a ser executada.
     llm_description: The raw SQL query to be executed on the database.
     form: llm
 
@@ -30,9 +34,11 @@ parameters:
     label:
       en_US: Output Format
       zh_Hans: 输出格式
+      pt_BR: Formato de saída
     human_description:
       en_US: The format for the output results.
       zh_Hans: 输出结果的格式。
+      pt_BR: Formato dos resultados de saída.
     llm_description: The desired format for the query results, either 'json' or 'md'.
     form: form
     options:
@@ -40,21 +46,25 @@ parameters:
         label:
           en_US: JSON
           zh_Hans: JSON
+          pt_BR: JSON
       - value: md
         label:
           en_US: Markdown
           zh_Hans: Markdown
+          pt_BR: Markdown
     default: json
-    
+
   - name: max_line
     type: number
     required: false
     label:
       en_US: Max Line
       zh_Hans: 最大行数
+      pt_BR: Máximo de linhas
     human_description:
       en_US: The maximum number of lines to return.
       zh_Hans: 要返回的最大行数。防止查询数据过多导致内存问题。
+      pt_BR: Número máximo de linhas a retornar (evita uso excessivo de memória).
     llm_description: The maximum number of lines to include in the query results.
     form: llm
 

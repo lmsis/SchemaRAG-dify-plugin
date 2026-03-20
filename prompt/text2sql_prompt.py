@@ -1,15 +1,13 @@
 def _build_system_prompt(dialect: str, custom_prompt: str = None) -> str:
     """
-    构建预定义的system prompt
-    
-    Args:
-        dialect: 数据库方言
-        custom_prompt: 自定义指令（可选），如果提供则替换默认的Critical Requirements
-    """
-    
+    Build the default Text2SQL system prompt.
 
-    
-    # 如果提供了自定义提示，则使用自定义规则替换默认的Critical Requirements
+    Args:
+        dialect: Target SQL dialect
+        custom_prompt: Optional text replacing the default Critical Requirements block
+    """
+
+    # Custom instructions replace the default Critical Requirements when provided
     if custom_prompt and custom_prompt.strip():
         critical_requirements_section = custom_prompt.strip()
         
@@ -36,7 +34,7 @@ If the question references previous questions or results, use the conversation h
 Remember: Generate clean, executable SQL that directly answers the user's question using the exact schema provided."""
     
     else:
-        # 使用默认的详细规则
+        # Built-in detailed rules
         system_prompt = f"""You are an expert {dialect} database analyst with deep expertise in query optimization and data analysis. Your task is to convert natural language questions into accurate, executable SQL queries.
 
 【Task Instructions】
@@ -84,16 +82,16 @@ Remember: Generate clean, executable SQL that directly answers the user's questi
 
 def _build_user_prompt(db_schema: str, question: str, example_info: str = None, conversation_history: list = None) -> str:
     """
-    构建预定义的user prompt
-    
+    Build the user prompt with schema, examples, and optional history.
+
     Args:
-        db_schema: 数据库架构信息
-        question: 用户问题
-        example_info: 示例信息（可选），从示例知识库检索的内容
-        conversation_history: 对话历史记录（可选），用于多轮对话上下文
+        db_schema: Schema text
+        question: User question
+        example_info: Optional few-shot text from example KB
+        conversation_history: Optional prior turns for multi-turn context
     """
 
-    # 构建对话历史部分
+    # Conversation history block
     from prompt.components.context_formatter import ContextFormatter
     from datetime import datetime
 

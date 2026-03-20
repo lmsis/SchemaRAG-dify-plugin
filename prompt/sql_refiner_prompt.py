@@ -1,16 +1,16 @@
 """
-SQL Refiner Prompt - 用于SQL自动纠错的提示词模板
+Prompt templates for the SQL Refiner (auto-correction).
 """
 
 def _build_refiner_system_prompt(dialect: str) -> str:
     """
-    构建 SQL Refiner 的 system prompt
-    
+    Build the SQL Refiner system prompt.
+
     Args:
-        dialect: 数据库方言 (mysql, postgresql, mssql, oracle, dameng)
-    
+        dialect: SQL dialect (mysql, postgresql, mssql, oracle, dameng)
+
     Returns:
-        System prompt 字符串
+        System prompt string
     """
     system_prompt = f"""You are an expert {dialect} SQL debugger and error correction specialist. Your task is to analyze failed SQL queries, identify the root cause of errors, and generate corrected SQL that will execute successfully.
 
@@ -64,22 +64,22 @@ def _build_refiner_user_prompt(
     error_history: list = None
 ) -> str:
     """
-    构建 SQL Refiner 的 user prompt
-    
+    Build the SQL Refiner user prompt.
+
     Args:
-        schema_info: 数据库 Schema 信息
-        question: 原始用户问题
-        failed_sql: 失败的 SQL 查询
-        error_message: 数据库返回的错误信息
-        dialect: 数据库方言
-        iteration: 当前迭代次数
-        error_history: 历史错误记录列表
-    
+        schema_info: Database schema text
+        question: Original user question
+        failed_sql: Failing SQL
+        error_message: DB error message
+        dialect: SQL dialect
+        iteration: Current iteration index
+        error_history: Prior errors
+
     Returns:
-        User prompt 字符串
+        User prompt string
     """
-    
-    # 构建历史错误部分
+
+    # Prior attempts section
     history_section = ""
     if error_history and len(error_history) > 0:
         history_section = "\n【Previous Error History】\n"
@@ -132,15 +132,15 @@ def _build_validation_error_message(
     db_type: str
 ) -> str:
     """
-    构建格式化的验证错误消息
-    
+    Format a validation / execution error for the refiner LLM.
+
     Args:
-        sql: 执行失败的 SQL
-        error: 异常对象
-        db_type: 数据库类型
-    
+        sql: SQL that failed
+        error: Exception instance
+        db_type: Database type label
+
     Returns:
-        格式化的错误消息
+        Multi-line English summary
     """
     error_type = type(error).__name__
     error_msg = str(error)

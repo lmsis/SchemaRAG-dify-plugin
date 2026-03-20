@@ -4,14 +4,14 @@ identity:
   label:
     en_US: Text to SQL
     zh_Hans: 文本转SQL
-    pt_BR: Text to SQL
+    pt_BR: Texto para SQL
     icon: logo.jpg
  
 description:
   human:
     en_US: Convert natural language questions to SQL queries using database schema knowledge base
     zh_Hans: 使用数据库架构知识库将自然语言问题转换为SQL查询
-    pt_BR: Convert natural language questions to SQL queries using database schema knowledge base
+    pt_BR: Converte perguntas em linguagem natural em consultas SQL usando a base de conhecimento do esquema do banco
   llm: A tool that converts natural language questions to SQL queries by retrieving relevant schema information from a knowledge base and using LLM to generate SQL
 
 parameters:
@@ -21,11 +21,11 @@ parameters:
     label:
       en_US: Dataset ID
       zh_Hans: 知识库ID
-      pt_BR: Dataset ID
+      pt_BR: ID do dataset
     human_description:
       en_US: The ID of the Dify dataset containing the database schema. Supports multiple datasets separated by commas for comprehensive schema coverage.
       zh_Hans: 包含数据库架构的Dify知识库ID。支持逗号分隔的多个知识库ID以获得更全面的架构覆盖。
-      pt_BR: The ID of the Dify dataset containing the database schema. Supports multiple datasets separated by commas for comprehensive schema coverage.
+      pt_BR: ID do dataset Dify que contém o esquema do banco. Aceita vários IDs separados por vírgula para cobertura mais ampla do esquema.
     llm_description: The dataset ID from Dify knowledge base containing database schema information. Can accept multiple dataset IDs separated by commas (e.g., "dataset1,dataset2,dataset3") for retrieving from multiple knowledge bases concurrently.
     form: llm
 
@@ -36,11 +36,11 @@ parameters:
     label:
       en_US: LLM Model
       zh_Hans: 大语言模型
-      pt_BR: LLM Model
+      pt_BR: Modelo de LLM
     human_description:
       en_US: The large language model to use for SQL generation
       zh_Hans: 用于生成SQL的大语言模型
-      pt_BR: The large language model to use for SQL generation
+      pt_BR: Modelo de linguagem grande (LLM) usado para gerar SQL
     llm_description: The LLM model to use for generating SQL queries
     form: form
 
@@ -50,11 +50,11 @@ parameters:
     label:
       en_US: Question
       zh_Hans: 问题
-      pt_BR: Question
+      pt_BR: Pergunta
     human_description:
       en_US: The natural language question to convert to SQL
       zh_Hans: 要转换为SQL的自然语言问题
-      pt_BR: The natural language question to convert to SQL
+      pt_BR: Pergunta em linguagem natural a ser convertida em SQL
     llm_description: The natural language question that needs to be converted to SQL query
     form: llm
 
@@ -64,11 +64,11 @@ parameters:
     label:
       en_US: SQL Dialect
       zh_Hans: SQL方言
-      pt_BR: SQL Dialect
+      pt_BR: Dialeto SQL
     human_description:
       en_US: The SQL dialect to use for query generation
       zh_Hans: 用于查询生成的SQL方言
-      pt_BR: The SQL dialect to use for query generation
+      pt_BR: Dialeto SQL usado para gerar a consulta
     llm_description: The SQL dialect (MySQL or PostgreSQL) to use for generating the query
     form: form
     options:
@@ -106,11 +106,11 @@ parameters:
     label:
       en_US: Top K Results
       zh_Hans: 检索结果数量
-      pt_BR: Top K Results
+      pt_BR: Top K resultados
     human_description:
       en_US: Number of top results to retrieve from knowledge base
       zh_Hans: 从知识库检索的结果数量
-      pt_BR: Number of top results to retrieve from knowledge base
+      pt_BR: Quantidade de melhores resultados a recuperar da base de conhecimento
     llm_description: The number of top results to retrieve from the knowledge base for schema information
     form: form
     default: 5
@@ -123,11 +123,11 @@ parameters:
     label:
       en_US: Retrieval Method
       zh_Hans: 检索方法
-      pt_BR: Retrieval Method
+      pt_BR: Método de recuperação
     human_description:
       en_US: The retrieval method to use for searching the knowledge base
       zh_Hans: 用于搜索知识库的检索方法
-      pt_BR: The retrieval method to use for searching the knowledge base
+      pt_BR: Método de busca na base de conhecimento (palavra-chave, semântica, etc.)
     llm_description: The retrieval method to use for searching relevant schema information
     form: form
     options:
@@ -135,22 +135,22 @@ parameters:
         label:
           en_US: Keyword Search
           zh_Hans: 关键字检索
-          pt_BR: Keyword Search
+          pt_BR: Busca por palavra-chave
       - value: semantic_search
         label:
           en_US: Semantic Search
           zh_Hans: 语义检索
-          pt_BR: Semantic Search
+          pt_BR: Busca semântica
       - value: full_text_search
         label:
           en_US: Full Text Search
           zh_Hans: 全文检索
-          pt_BR: Full Text Search
+          pt_BR: Busca em texto completo
       - value: hybrid_search
         label:
           en_US: Hybrid Search
           zh_Hans: 混合检索
-          pt_BR: Hybrid Search
+          pt_BR: Busca híbrida
     default: semantic_search
 
   - name: custom_prompt
@@ -159,17 +159,17 @@ parameters:
     label:
       en_US: Custom Instructions
       zh_Hans: 自定义指令
-      pt_BR: Custom Instructions
+      pt_BR: Instruções personalizadas
     human_description:
       en_US: Custom instructions to enhance SQL generation quality and targeting
       zh_Hans: 自定义指令以增强SQL生成质量和针对性
-      pt_BR: Custom instructions to enhance SQL generation quality and targeting
+      pt_BR: Instruções extras para melhorar a qualidade e o foco da geração de SQL
     llm_description: Custom instructions that will be added to the system prompt to improve SQL generation results
     form: llm
     placeholder:
       en_US: "e.g., Always use explicit column names, avoid SELECT *, and prefer JOIN over subqueries for better performance."
       zh_Hans: "例如：始终使用明确的列名，避免 SELECT *，优先使用 JOIN 而不是子查询以获得更好的性能。"
-      pt_BR: "e.g., Always use explicit column names, avoid SELECT *, and prefer JOIN over subqueries for better performance."
+      pt_BR: "Ex.: use sempre nomes explícitos de colunas, evite SELECT * e prefira JOIN a subconsultas quando fizer sentido."
 
   - name: example_dataset_id
     type: string
@@ -177,17 +177,17 @@ parameters:
     label:
       en_US: Example Dataset ID
       zh_Hans: 示例知识库ID
-      pt_BR: Example Dataset ID
+      pt_BR: ID do dataset de exemplos
     human_description:
       en_US: The ID of the Dify dataset containing SQL examples. Supports multiple datasets separated by commas for comprehensive example coverage.
       zh_Hans: 包含SQL示例的Dify知识库ID。支持逗号分隔的多个知识库ID以获得更全面的示例覆盖。
-      pt_BR: The ID of the Dify dataset containing SQL examples. Supports multiple datasets separated by commas for comprehensive example coverage.
+      pt_BR: ID do dataset Dify com exemplos de SQL. Aceita vários IDs separados por vírgula.
     llm_description: Optional dataset ID from Dify knowledge base containing SQL examples that will be retrieved and added to the prompt to improve SQL generation accuracy. Can accept multiple dataset IDs separated by commas.
     form: llm
     placeholder:
       en_US: "e.g., examples_dataset_1,examples_dataset_2"
       zh_Hans: "例如：examples_dataset_1,examples_dataset_2"
-      pt_BR: "e.g., examples_dataset_1,examples_dataset_2"
+      pt_BR: "Ex.: examples_dataset_1,examples_dataset_2"
 
   - name: memory_enabled
     type: select
@@ -195,11 +195,11 @@ parameters:
     label:
       en_US: Enable Memory
       zh_Hans: 启用记忆功能
-      pt_BR: Enable Memory
+      pt_BR: Ativar memória
     human_description:
       en_US: Whether to enable context memory for multi-turn conversations
       zh_Hans: 是否启用上下文记忆功能，支持多轮对话
-      pt_BR: Whether to enable context memory for multi-turn conversations
+      pt_BR: Se deve manter memória de contexto para conversas com várias interações
     llm_description: Enable or disable the conversation memory feature for maintaining context across multiple queries
     form: form
     options:
@@ -207,12 +207,12 @@ parameters:
         label:
           en_US: Enable
           zh_Hans: 启用
-          pt_BR: Enable
+          pt_BR: Ativar
       - value: "false"
         label:
           en_US: Disable
           zh_Hans: 禁用
-          pt_BR: Disable
+          pt_BR: Desativar
     default: "false"
 
   - name: memory_window_size
@@ -221,11 +221,11 @@ parameters:
     label:
       en_US: Memory Window Size
       zh_Hans: 记忆窗口大小
-      pt_BR: Memory Window Size
+      pt_BR: Tamanho da janela de memória
     human_description:
       en_US: Number of previous conversations to remember (1-100)
       zh_Hans: 记住前几轮对话的数量（1-100）
-      pt_BR: Number of previous conversations to remember (1-100)
+      pt_BR: Quantidade de interações anteriores a lembrar (1-100)
     llm_description: The number of previous conversation turns to include in the context when memory is enabled
     form: form
     default: 3
@@ -238,17 +238,17 @@ parameters:
     label:
       en_US: Reset Memory
       zh_Hans: 重置记忆
-      pt_BR: Reset Memory
+      pt_BR: Redefinir memória
     human_description:
       en_US: Whether to clear conversation memory and start fresh
       zh_Hans: 是否清除对话记忆并重新开始
-      pt_BR: Whether to clear conversation memory and start fresh
+      pt_BR: Se deve limpar o histórico da conversa e recomeçar do zero
     llm_description: If set to true, all previous conversation history will be cleared before processing the current query
     form: form
     placeholder:
       en_US: "e.g., true,false"
       zh_Hans: "例如：true,false"
-      pt_BR: "e.g., true,false"
+      pt_BR: "Ex.: true,false"
 
   - name: cache_enabled
     type: select
@@ -256,11 +256,11 @@ parameters:
     label:
       en_US: Enable Cache
       zh_Hans: 启用缓存
-      pt_BR: Enable Cache
+      pt_BR: Ativar cache
     human_description:
       en_US: Whether to enable caching for schema retrieval and SQL generation
       zh_Hans: 是否启用Schema检索和SQL生成的缓存功能
-      pt_BR: Whether to enable caching for schema retrieval and SQL generation
+      pt_BR: Se deve usar cache na recuperação do esquema e na geração de SQL
     llm_description: Enable or disable the caching feature for improved performance
     form: form
     options:
@@ -268,12 +268,12 @@ parameters:
         label:
           en_US: Enable
           zh_Hans: 启用
-          pt_BR: Enable
+          pt_BR: Ativar
       - value: "false"
         label:
           en_US: Disable
           zh_Hans: 禁用
-          pt_BR: Disable
+          pt_BR: Desativar
     default: "true"
 
 extra:

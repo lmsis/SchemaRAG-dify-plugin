@@ -1,26 +1,25 @@
-# SchemaRAG Plugin 使用说明
+# SchemaRAG Plugin Usage
 
-这是一个用于构建数据库架构RAG的Dify插件，能够自动分析数据库结构并上传到Dify知识库。
+A Dify plugin for building database schema RAG: it analyzes database structure and uploads it to a Dify knowledge base.
 
-## 功能特性
+## Features
 
-- 🔍 自动分析MySQL/PostgreSQL数据库结构
-- 📊 生成数据字典文档
-- ☁️ 自动上传到Dify知识库
-- 🚀 提供封装好的text2sql工具，开箱即用
+- Automatically analyzes MySQL/PostgreSQL (and other supported) database structures
+- Generates data dictionary documentation
+- Uploads to a Dify knowledge base
+- Ships with a ready-to-use Text2SQL tool
 
-## 配置参数
+## Required configuration
 
-### 必需配置
+- **Dataset API Key**: Dify knowledge base API key
+- **Database Type**: e.g. MySQL / PostgreSQL
+- **Database Host**: database host
+- **Database Port**: port (default 3306 for MySQL)
+- **Database User**: username
+- **Database Password**: password
+- **Database Name**: database name
+- **Dify Base URL**: Dify API base URL (default: `https://api.dify.ai/v1`)
 
-- **Dataset API Key**: Dify知识库API密钥
-- **Database Type**: 数据库类型（MySQL/PostgreSQL）
-- **Database Host**: 数据库主机地址
-- **Database Port**: 数据库端口（默认3306）
-- **Database User**: 数据库用户名
-- **Database Password**: 数据库密码
-- **Database Name**: 数据库名称
-- **Dify Base URL**: Dify API基础URL（默认：<https://api.dify.ai/v1）>
+## How to use
 
-## 使用方式
-
+Configure the provider in Dify, run the schema build, then attach the generated dataset IDs to tools such as Text2SQL or Text2Data. See the main [README](README.md) for full workflow details.

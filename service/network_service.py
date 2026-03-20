@@ -1,16 +1,16 @@
 """
-网络服务模块
+Network service module.
 """
 
 import socket
 
 
 class NetworkTester:
-    """网络连接测试器"""
+    """Network connectivity tester."""
 
     @staticmethod
     def test_connectivity(host: str, port: int, timeout: int = 5) -> bool:
-        """测试网络连接性"""
+        """Test network connectivity to host:port."""
         try:
             socket.create_connection((host, port), timeout=timeout)
             return True

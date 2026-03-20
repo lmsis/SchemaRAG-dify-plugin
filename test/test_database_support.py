@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-测试数据库支持配置
+Database support: connection string generation smoke test.
 """
 
 import sys
 import os
 
-# 添加项目根目录到路径
+# Project root on path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import DatabaseConfig
 
 
 def test_database_connections():
-    """测试不同数据库类型的连接字符串生成"""
+    """Print connection strings for each supported DB type."""
 
     test_configs = [
         {
@@ -58,7 +58,7 @@ def test_database_connections():
         },
     ]
 
-    print("测试数据库连接字符串生成:")
+    print("Database connection string generation:")
     print("=" * 60)
 
     for config in test_configs:
@@ -76,7 +76,7 @@ def test_database_connections():
             print(f"✅ {config['type'].upper():>12}: {connection_string}")
 
         except Exception as e:
-            print(f"❌ {config['type'].upper():>12}: 错误 - {e}")
+            print(f"❌ {config['type'].upper():>12}: error - {e}")
 
     print("=" * 60)
 

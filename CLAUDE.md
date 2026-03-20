@@ -121,15 +121,15 @@ REMOTE_INSTALL_KEY=<debug-key-from-dify>
 ## Coding Conventions
 
 ### Language
-- Code comments and docstrings are primarily in **Chinese**
+- Code comments and docstrings may be **Chinese** or **English** depending on module
 - Public API documentation and error messages support multilingual (en_US, zh_Hans, pt_BR)
-- Use Chinese for internal logging
+- Prefer clear, consistent language for internal logging
 
 ### Code Style
 ```python
 # Module docstring at top
 """
-项目配置模块
+Project configuration module
 """
 
 # Imports order: stdlib, third-party, local
@@ -145,16 +145,16 @@ class MyTool(Tool):
     _cache_max_size = 10  # Private with underscore
 
     def __init__(self):
-        """初始化说明"""
+        """Initialization notes"""
         self._private_var = None
 
     @property
     def some_property(self):
-        """延迟初始化的属性，使用缓存避免重复创建"""
+        """Lazily initialized property; cache to avoid repeated work"""
         pass
 
     def _private_method(self):
-        """私有方法使用下划线前缀"""
+        """Private methods use a leading underscore"""
         pass
 ```
 
@@ -169,14 +169,14 @@ try:
     # Operation
     pass
 except ValueError as e:
-    self.logger.error(f"参数验证错误: {str(e)}")
-    raise ValueError(f"参数错误: {str(e)}")
+    self.logger.error(f"Parameter validation error: {str(e)}")
+    raise ValueError(f"Invalid parameters: {str(e)}")
 except ConnectionError as e:
-    self.logger.error(f"网络连接错误: {str(e)}")
+    self.logger.error(f"Network error: {str(e)}")
     raise
 except Exception as e:
-    self.logger.error(f"异常: {str(e)}")
-    raise ValueError(f"操作异常: {str(e)}")
+    self.logger.error(f"Unexpected error: {str(e)}")
+    raise ValueError(f"Operation failed: {str(e)}")
 ```
 
 ### Logging
@@ -187,9 +187,9 @@ from dify_plugin.config.logger_format import plugin_logger_handler
 self.logger = logging.getLogger(__name__)
 self.logger.addHandler(plugin_logger_handler)
 
-self.logger.info(f"从知识库 {dataset_id} 检索架构信息")
-self.logger.warning("未检索到相关的架构信息")
-self.logger.error(f"SQL生成异常: {str(e)}")
+self.logger.info(f"Retrieving schema from dataset {dataset_id}")
+self.logger.warning("No relevant schema retrieved from knowledge base")
+self.logger.error(f"SQL generation error: {str(e)}")
 ```
 
 ---
@@ -214,7 +214,7 @@ class MyTool(Tool):
         self._validate_config()
 
     def _validate_config(self):
-        """验证配置"""
+        """Validate configuration"""
         pass
 
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage]:
@@ -263,18 +263,18 @@ import unittest
 from unittest.mock import Mock, MagicMock, patch
 
 class TestMyFeature(unittest.TestCase):
-    """功能测试类"""
+    """Feature tests"""
 
     def setUp(self):
-        """测试前准备"""
+        """Per-test setup"""
         self.mock_service = Mock()
 
     def test_feature_success(self):
-        """测试成功场景"""
+        """Happy path"""
         pass
 
     def test_feature_failure(self):
-        """测试失败场景"""
+        """Error path"""
         pass
 ```
 
@@ -294,22 +294,22 @@ uv run pytest -v test/
 
 ## Git Commit Conventions
 
-Commits follow a Chinese-style format with conventional prefixes:
+Commits often use a conventional prefix (Chinese or English message body is fine):
 
 ```
-feat: 添加新功能描述
-fix: 修复问题描述
-refactor: 重构代码描述
-docs: 更新文档描述
-test: 添加测试描述
+feat: <description>
+fix: <description>
+refactor: <description>
+docs: <description>
+test: <description>
 ```
 
 ### Examples from History
 ```
-feat: 更新版本号至0.1.6，优化文档和元数据描述
-feat: 优化SQL执行器和工具，重构缓存机制，增强SQL清理与验证功能
-feat: 添加SQL自动纠错服务和相关测试用例，集成LLM反馈机制以修复SQL错误
-fix: 修正示例工作流下载链接，确保指向正确的路径
+feat: bump version to 0.1.6; polish docs and metadata
+feat: improve SQL executors and tools; refactor caching; tighten SQL cleanup/validation
+feat: add SQL refiner service and tests with LLM feedback loop
+fix: correct sample workflow download URL
 ```
 
 ---

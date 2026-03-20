@@ -4,10 +4,12 @@ identity:
   label:
     zh_Hans: 智能绘图工具
     en_US: Intelligent Plotting Tool
+    pt_BR: Gráficos inteligentes (LLM)
 description:
   human:
     zh_Hans: 基于自然语言问题和数据自动生成可视化图表
     en_US: Automatically generate visualization charts based on natural language questions and data
+    pt_BR: Gera gráficos a partir da pergunta em linguagem natural e dos dados fornecidos.
   llm: Generate data visualization charts using LLM analysis for data understanding and chart type recommendation
 parameters:
   - name: user_question
@@ -16,9 +18,11 @@ parameters:
     label:
       zh_Hans: 用户问题
       en_US: User Question
+      pt_BR: Pergunta do usuário
     human_description:
       zh_Hans: 描述您想要可视化的内容，例如显示销售趋势变化
       en_US: Describe what you want to visualize, e.g. Show sales trend changes
+      pt_BR: Descreva o que deseja visualizar (ex.: tendência de vendas no tempo).
     llm_description: The user's natural language description of what they want to visualize
     form: llm
   
@@ -28,9 +32,11 @@ parameters:
     label:
       zh_Hans: SQL查询
       en_US: SQL Query
+      pt_BR: Consulta SQL
     human_description:
       zh_Hans: 用于图表推荐的SQL查询语句
       en_US: SQL query statement for chart recommendation context
+      pt_BR: Consulta SQL usada como contexto para sugerir tipo de gráfico e campos.
     llm_description: The SQL query providing context for chart type recommendation
     form: llm
     
@@ -40,9 +46,11 @@ parameters:
     label:
       zh_Hans: 数据
       en_US: Data
+      pt_BR: Dados
     human_description:
       zh_Hans: 要可视化的JSON格式数据
       en_US: JSON format data to be visualized
+      pt_BR: Dados a visualizar em formato JSON (ou texto estruturado compatível).
     llm_description: The data to be visualized in JSON format
     form: form
     
@@ -53,11 +61,11 @@ parameters:
     label:
       en_US: LLM Model
       zh_Hans: 大语言模型
-      pt_BR: LLM Model
+      pt_BR: Modelo de LLM
     human_description:
       en_US: The large language model  
       zh_Hans: 大语言模型
-      pt_BR: The large language model 
+      pt_BR: Modelo de linguagem grande usado para analisar dados e recomendar o gráfico.
     llm_description: The LLM model 
     form: form
 

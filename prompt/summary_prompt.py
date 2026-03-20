@@ -2,7 +2,7 @@ def _data_summary_prompt(
     data_content: str, query: str, custom_rules: str = None
 ) -> str:
     """
-    构建数据摘要prompt，传入数据内容，返回摘要信息
+    Build the data-summary system prompt from content and query.
     """
     custom_rules_section = ""
     if custom_rules and custom_rules.strip():

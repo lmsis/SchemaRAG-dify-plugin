@@ -6,11 +6,11 @@ from sqlalchemy import MetaData, create_engine, insert, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-# 尝试导入达梦数据库 SQLAlchemy 方言，如果可用则自动注册
+# Optional Dameng SQLAlchemy dialect
 try:
     import sqlalchemy_dm  # noqa: F401
 except ImportError:
-    pass  # 达梦数据库支持可选
+    pass  # Dameng support is optional
 
 
 class SQLDatabase:

@@ -10,21 +10,21 @@ from service.cache import cacheable, normalize_query, create_cache_key_from_dict
 
 class KnowledgeService:
     """
-    知识库服务类 - 负责与Dify知识库API交互，检索相关文档内容
-    
-    已集成缓存功能：
-    - Schema检索结果自动缓存
-    - 缓存键基于查询参数生成
-    - 支持缓存失效和统计
+    Knowledge base service — interacts with the Dify knowledge API to retrieve documents.
+
+    Caching is enabled:
+    - Schema retrieval results are cached automatically
+    - Cache keys are derived from query parameters
+    - Supports invalidation and statistics
     """
 
     def __init__(self, api_uri: str, api_key: str):
         """
-        初始化知识库服务
+        Initialize the knowledge service.
 
         Args:
-            api_uri: Dify API的基础URL
-            api_key: API密钥
+            api_uri: Base URL of the Dify API
+            api_key: API key
         """
         self.api_uri = api_uri.rstrip("/")
         self.api_key = api_key
@@ -38,35 +38,35 @@ class KnowledgeService:
         retrieval_model: str = "semantic_search",
     ) -> str:
         """
-        从多个Dify知识库异步并发检索相关的schema信息
-        
+        Retrieve schema-related content from multiple Dify datasets concurrently (async).
+
         Args:
-            dataset_ids: 数据集ID，支持逗号分隔的多个ID
-            query: 查询内容
-            top_k: 每个知识库返回结果数量
-            retrieval_model: 检索模型类型
-            
+            dataset_ids: Dataset IDs (comma-separated)
+            query: Query text
+            top_k: Number of hits per dataset
+            retrieval_model: Retrieval model type
+
         Returns:
-            检索到的schema内容，多个内容之间用\\n\\n分隔
+            Concatenated schema content, blocks separated by \\n\\n
         """
-        # 解析数据集ID列表
+        # Parse dataset ID list
         id_list = [id.strip() for id in dataset_ids.split(",") if id.strip()]
         
         if not id_list:
-            self.logger.warning("数据集ID列表为空")
+            self.logger.warning("Dataset ID list is empty")
             return ""
         
         if len(id_list) == 1:
-            # 单个知识库，使用原有方法
+            # Single dataset: use the existing path
             return self.retrieve_schema_from_dataset(
                 id_list[0], query, top_k, retrieval_model
             )
         
-        # 多个知识库，使用异步并发检索
-        self.logger.info(f"开始从 {len(id_list)} 个知识库并发检索: {id_list}")
+        # Multiple datasets: concurrent async retrieval
+        self.logger.info(f"Starting concurrent retrieval from {len(id_list)} knowledge bases: {id_list}")
         
         try:
-            # 使用事件循环运行异步任务
+            # Run async work on an event loop
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
@@ -78,22 +78,22 @@ class KnowledgeService:
             finally:
                 loop.close()
             
-            # 合并结果
+            # Merge results
             all_content = []
             for dataset_id, content in results:
                 if content and content.strip():
-                    all_content.append(f"=== 知识库 {dataset_id} ===\\n{content}")
-                    self.logger.info(f"知识库 {dataset_id}: 检索到内容长度 {len(content)}")
+                    all_content.append(f"=== Knowledge base {dataset_id} ===\\n{content}")
+                    self.logger.info(f"Dataset {dataset_id}: retrieved content length {len(content)}")
                 else:
-                    self.logger.warning(f"知识库 {dataset_id}: 未检索到内容")
+                    self.logger.warning(f"Dataset {dataset_id}: no content retrieved")
             
             final_content = "\\n\\n".join(all_content)
-            self.logger.info(f"多知识库检索完成，总内容长度: {len(final_content)}")
+            self.logger.info(f"Multi-dataset retrieval done, total content length: {len(final_content)}")
             return final_content
             
         except Exception as e:
-            self.logger.error(f"多知识库检索异常: {str(e)}")
-            # 降级到同步逐个检索
+            self.logger.error(f"Multi-dataset retrieval error: {str(e)}")
+            # Fall back to sequential synchronous retrieval
             return self._fallback_retrieve_multiple_datasets(
                 id_list, query, top_k, retrieval_model
             )
@@ -106,21 +106,21 @@ class KnowledgeService:
         retrieval_model: str,
     ) -> List[Tuple[str, str]]:
         """
-        异步并发从多个数据集检索内容
-        
+        Async concurrent retrieval from multiple datasets.
+
         Args:
-            dataset_ids: 数据集ID列表
-            query: 查询内容
-            top_k: 每个知识库返回结果数量
-            retrieval_model: 检索模型类型
-            
+            dataset_ids: List of dataset IDs
+            query: Query text
+            top_k: Max hits per dataset
+            retrieval_model: Retrieval model type
+
         Returns:
-            检索结果列表，每项为 (dataset_id, content) 元组
+            List of (dataset_id, content) tuples
         """
         timeout = httpx.Timeout(30.0)
         
         async with httpx.AsyncClient(timeout=timeout) as client:
-            # 创建并发任务
+            # Build concurrent tasks
             tasks = [
                 self._retrieve_from_single_dataset_async(
                     client, dataset_id, query, top_k, retrieval_model
@@ -128,15 +128,15 @@ class KnowledgeService:
                 for dataset_id in dataset_ids
             ]
             
-            # 等待所有任务完成
+            # Wait for all tasks
             results = await asyncio.gather(*tasks, return_exceptions=True)
             
-            # 处理结果
+            # Normalize results
             final_results = []
             for i, result in enumerate(results):
                 dataset_id = dataset_ids[i]
                 if isinstance(result, Exception):
-                    self.logger.error(f"知识库 {dataset_id} 检索异常: {str(result)}")
+                    self.logger.error(f"Dataset {dataset_id} retrieval error: {str(result)}")
                     final_results.append((dataset_id, ""))
                 else:
                     final_results.append((dataset_id, result))
@@ -152,17 +152,17 @@ class KnowledgeService:
         retrieval_model: str,
     ) -> str:
         """
-        异步从单个数据集检索内容
-        
+        Async retrieval from a single dataset.
+
         Args:
-            client: httpx异步客户端
-            dataset_id: 数据集ID
-            query: 查询内容
-            top_k: 返回结果数量
-            retrieval_model: 检索模型类型
-            
+            client: httpx async client
+            dataset_id: Dataset ID
+            query: Query text
+            top_k: Max number of results
+            retrieval_model: Retrieval model type
+
         Returns:
-            检索到的内容
+            Retrieved text content
         """
         url = f"{self.api_uri}/datasets/{dataset_id}/retrieve"
         
@@ -190,7 +190,7 @@ class KnowledgeService:
             if response.status_code == 200:
                 result = response.json()
                 
-                # 提取检索到的内容
+                # Extract retrieved segments
                 schema_contents = []
                 if "records" in result:
                     for record in result["records"]:
@@ -200,12 +200,12 @@ class KnowledgeService:
                 return "\\n\\n".join(schema_contents)
             else:
                 self.logger.warning(
-                    f"数据集 {dataset_id} 检索失败，状态码: {response.status_code}"
+                    f"Dataset {dataset_id} retrieval failed, status: {response.status_code}"
                 )
                 return ""
                 
         except Exception as e:
-            self.logger.error(f"数据集 {dataset_id} 异步检索异常: {str(e)}")
+            self.logger.error(f"Dataset {dataset_id} async retrieval error: {str(e)}")
             return ""
 
     def _fallback_retrieve_multiple_datasets(
@@ -216,18 +216,18 @@ class KnowledgeService:
         retrieval_model: str,
     ) -> str:
         """
-        降级方案：同步逐个检索多个数据集
-        
+        Fallback: retrieve multiple datasets sequentially (sync).
+
         Args:
-            dataset_ids: 数据集ID列表
-            query: 查询内容
-            top_k: 每个知识库返回结果数量
-            retrieval_model: 检索模型类型
-            
+            dataset_ids: List of dataset IDs
+            query: Query text
+            top_k: Max hits per dataset
+            retrieval_model: Retrieval model type
+
         Returns:
-            检索到的schema内容
+            Concatenated schema content
         """
-        self.logger.info("使用降级方案进行同步检索")
+        self.logger.info("Using fallback synchronous sequential retrieval")
         
         all_content = []
         for dataset_id in dataset_ids:
@@ -236,16 +236,16 @@ class KnowledgeService:
                     dataset_id, query, top_k, retrieval_model
                 )
                 if content and content.strip():
-                    all_content.append(f"=== 知识库 {dataset_id} ===\\n{content}")
+                    all_content.append(f"=== Knowledge base {dataset_id} ===\\n{content}")
             except Exception as e:
-                self.logger.error(f"数据集 {dataset_id} 同步检索异常: {str(e)}")
+                self.logger.error(f"Dataset {dataset_id} sync retrieval error: {str(e)}")
         
         return "\\n\\n".join(all_content)
 
     @cacheable(
         name="schema_cache",
         key_prefix="schema",
-        ttl=3600,  # 1小时过期
+        ttl=3600,  # 1 hour TTL
         key_generator=lambda self, dataset_id, query, top_k, retrieval_model: 
             create_cache_key_from_dict(
                 "schema",
@@ -256,7 +256,7 @@ class KnowledgeService:
                     "retrieval_model": retrieval_model
                 }
             ),
-        condition=lambda result: result and result.strip()  # 只缓存非空结果
+        condition=lambda result: result and result.strip()  # cache non-empty results only
     )
     def retrieve_schema_from_dataset(
         self,
@@ -266,24 +266,24 @@ class KnowledgeService:
         retrieval_model: str = "semantic_search",
     ) -> str:
         """
-        从Dify知识库检索相关的schema信息
-        
-        该方法已启用缓存功能：
-        - 相同参数的查询将直接返回缓存结果
-        - 缓存有效期为1小时
-        - 查询会被规范化以提高缓存命中率
+        Retrieve schema-related content from a Dify knowledge dataset.
+
+        Caching:
+        - Identical parameters return cached results
+        - TTL is 1 hour
+        - Queries are normalized to improve hit rate
 
         Args:
-            dataset_id: 数据集ID
-            query: 查询内容
-            top_k: 返回结果数量
-            retrieval_model: 检索模型类型
+            dataset_id: Dataset ID
+            query: Query text
+            top_k: Max number of results
+            retrieval_model: Retrieval model type
 
         Returns:
-            检索到的schema内容，多个内容之间用\\n\\n分隔
+            Schema text; multiple segments joined with \\n\\n
         """
         try:
-            # 构建检索API URL
+            # Build retrieve API URL
             url = f"{self.api_uri}/datasets/{dataset_id}/retrieve"
 
             headers = {
@@ -291,7 +291,7 @@ class KnowledgeService:
                 "Content-Type": "application/json",
             }
 
-            # 构建请求体
+            # Build request body
             data = {
                 "query": query,
                 "retrieval_model": {
@@ -306,13 +306,13 @@ class KnowledgeService:
                 },
             }
 
-            self.logger.info(f"正在从数据集 {dataset_id} 检索内容，查询: {query}")
+            self.logger.info(f"Retrieving from dataset {dataset_id}, query: {query}")
             response = requests.post(url, headers=headers, json=data, timeout=30)
 
             if response.status_code == 200:
                 result = response.json()
 
-                # 提取检索到的内容
+                # Extract segment text
                 schema_contents = []
                 if "records" in result:
                     for record in result["records"]:
@@ -320,48 +320,48 @@ class KnowledgeService:
                             schema_contents.append(record["segment"]["content"])
 
                 content = "\\n\\n".join(schema_contents)
-                self.logger.info(f"成功检索到 {len(schema_contents)} 个相关片段")
+                self.logger.info(f"Retrieved {len(schema_contents)} relevant segment(s)")
                 return content
             else:
                 self.logger.warning(
-                    f"检索API请求失败，状态码: {response.status_code}，尝试备选方法"
+                    f"Retrieve API failed, status: {response.status_code}; trying fallback"
                 )
-                # 如果检索API失败，尝试使用文档片段API作为备选
+                # On retrieve API failure, try document/segment API
                 return self._fallback_retrieve_documents(dataset_id)
 
         except Exception as e:
-            self.logger.error(f"检索schema时发生错误: {str(e)}")
-            # 如果出错，尝试备选方法
+            self.logger.error(f"Error retrieving schema: {str(e)}")
+            # On error, try fallback path
             return self._fallback_retrieve_documents(dataset_id)
 
     def _fallback_retrieve_documents(self, dataset_id: str) -> str:
         """
-        备选方法：获取数据集中的文档信息
+        Fallback: load documents from the dataset.
 
         Args:
-            dataset_id: 数据集ID
+            dataset_id: Dataset ID
 
         Returns:
-            获取到的文档内容
+            Concatenated document/segment text
         """
         try:
-            # 首先获取数据集中的文档列表
+            # List documents in the dataset
             url = f"{self.api_uri}/datasets/{dataset_id}/documents"
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
             }
 
-            self.logger.info(f"使用备选方法获取数据集 {dataset_id} 的文档列表")
+            self.logger.info(f"Fallback: listing documents for dataset {dataset_id}")
             response = requests.get(url, headers=headers, timeout=30)
 
             if response.status_code == 200:
                 documents = response.json()
                 schema_contents = []
 
-                # 获取前几个文档的片段
+                # Fetch segments for the first few documents
                 if "data" in documents:
-                    for doc in documents["data"][:3]:  # 限制获取前3个文档
+                    for doc in documents["data"][:3]:  # cap at first 3 documents
                         doc_id = doc.get("id")
                         if doc_id:
                             segments = self._get_document_segments(dataset_id, doc_id)
@@ -370,27 +370,27 @@ class KnowledgeService:
 
                 content = "\\n\\n".join(schema_contents)
                 self.logger.info(
-                    f"通过备选方法获取到 {len(schema_contents)} 个文档片段"
+                    f"Fallback retrieved {len(schema_contents)} document segment(s)"
                 )
                 return content
 
-            self.logger.warning(f"获取文档列表失败，状态码: {response.status_code}")
+            self.logger.warning(f"Failed to list documents, status: {response.status_code}")
             return ""
 
         except Exception as e:
-            self.logger.error(f"备选检索方法失败: {str(e)}")
+            self.logger.error(f"Fallback retrieval failed: {str(e)}")
             return ""
 
     def _get_document_segments(self, dataset_id: str, document_id: str) -> List[str]:
         """
-        获取文档的片段内容
+        Fetch segment text for a document.
 
         Args:
-            dataset_id: 数据集ID
-            document_id: 文档ID
+            dataset_id: Dataset ID
+            document_id: Document ID
 
         Returns:
-            文档片段内容列表
+            List of segment strings
         """
         try:
             url = (
@@ -408,7 +408,7 @@ class KnowledgeService:
                 segments = []
 
                 if "data" in result:
-                    for segment in result["data"][:5]:  # 限制每个文档最多5个片段
+                    for segment in result["data"][:5]:  # cap at 5 segments per document
                         if "content" in segment and segment["content"]:
                             segments.append(segment["content"])
 
@@ -417,18 +417,18 @@ class KnowledgeService:
             return []
 
         except Exception as e:
-            self.logger.error(f"获取文档 {document_id} 片段失败: {str(e)}")
+            self.logger.error(f"Failed to fetch segments for document {document_id}: {str(e)}")
             return []
 
     def get_dataset_info(self, dataset_id: str) -> Optional[dict]:
         """
-        获取数据集基本信息
+        Get basic dataset metadata.
 
         Args:
-            dataset_id: 数据集ID
+            dataset_id: Dataset ID
 
         Returns:
-            数据集信息字典，如果失败返回None
+            Dataset dict, or None on failure
         """
         try:
             url = f"{self.api_uri}/datasets/{dataset_id}"
@@ -443,20 +443,20 @@ class KnowledgeService:
                 return response.json()
             else:
                 self.logger.warning(
-                    f"获取数据集信息失败，状态码: {response.status_code}"
+                    f"Failed to get dataset info, status: {response.status_code}"
                 )
                 return None
 
         except Exception as e:
-            self.logger.error(f"获取数据集信息时发生错误: {str(e)}")
+            self.logger.error(f"Error fetching dataset info: {str(e)}")
             return None
 
     def list_datasets(self) -> List[dict]:
         """
-        列出所有可用的数据集
+        List available datasets.
 
         Returns:
-            数据集列表
+            List of dataset dicts
         """
         try:
             url = f"{self.api_uri}/datasets"
@@ -472,10 +472,10 @@ class KnowledgeService:
                 return result.get("data", [])
             else:
                 self.logger.warning(
-                    f"获取数据集列表失败，状态码: {response.status_code}"
+                    f"Failed to list datasets, status: {response.status_code}"
                 )
                 return []
 
         except Exception as e:
-            self.logger.error(f"获取数据集列表时发生错误: {str(e)}")
+            self.logger.error(f"Error listing datasets: {str(e)}")
             return []

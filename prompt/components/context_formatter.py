@@ -1,106 +1,97 @@
 """
-上下文格式化组件
-
-负责将对话历史格式化为提示词片段
+Format conversation history for prompts.
 """
 
 from typing import List, Dict, Any, Optional
 
 
 class ContextFormatter:
-    """上下文格式化组件，负责将上下文历史格式化为合适的提示词片段"""
-    
+    """Turn stored turns into plain-text or chat-style snippets."""
+
     @staticmethod
     def format_conversation_history(
-        conversation_history: List[Dict[str, Any]], 
+        conversation_history: List[Dict[str, Any]],
         max_length: Optional[int] = None
     ) -> str:
         """
-        将对话历史格式化为提示词片段
-        
+        Flatten history into labeled lines for injection into a prompt.
+
         Args:
-            conversation_history: 对话历史列表
-            max_length: 可选的最大长度限制
-            
+            conversation_history: List of dicts with query/sql
+            max_length: Optional per-field truncation
+
         Returns:
-            格式化后的文本
+            Single string block
         """
         if not conversation_history:
             return ""
-            
+
         history_items = []
         for i, conv in enumerate(conversation_history, 1):
             query = conv.get('query', '')
             sql = conv.get('sql', '')
-            
-            # 如果有最大长度限制，截断过长的内容
+
             if max_length:
                 if len(query) > max_length:
                     query = query[:max_length] + "..."
                 if len(sql) > max_length:
                     sql = sql[:max_length] + "..."
-            
-            history_items.append(f"问题 {i}: {query}\nSQL {i}: {sql}")
-        
-        history_content = "\n\n".join(history_items)
-        
-        return history_content
-    
+
+            history_items.append(f"Question {i}: {query}\nSQL {i}: {sql}")
+
+        return "\n\n".join(history_items)
+
     @staticmethod
     def format_for_llm(conversation_history: List[Dict[str, Any]]) -> List[Dict[str, str]]:
         """
-        将对话历史格式化为LLM可以理解的消息格式
-        
+        Alternate shape: alternating user/assistant messages.
+
         Args:
-            conversation_history: 对话历史列表
-            
+            conversation_history: Same structure as above
+
         Returns:
-            格式化后的消息列表
+            List of {role, content} dicts
         """
         messages = []
         for conv in conversation_history:
-            # 用户问题
             messages.append({
                 "role": "user",
                 "content": conv.get('query', '')
             })
-            # 助手回答（SQL）
             messages.append({
-                "role": "assistant", 
+                "role": "assistant",
                 "content": conv.get('sql', '')
             })
         return messages
-    
+
     @staticmethod
     def should_include_context(
-        conversation_history: List[Dict[str, Any]], 
+        conversation_history: List[Dict[str, Any]],
         current_query: str
     ) -> bool:
         """
-        判断是否应该包含上下文历史
-        
-        通过简单的启发式规则判断当前查询是否依赖历史上下文
-        
+        Heuristic: include history when the query looks anaphoric.
+
         Args:
-            conversation_history: 对话历史列表
-            current_query: 当前查询
-            
+            conversation_history: Prior turns
+            current_query: Latest user text
+
         Returns:
-            是否应该包含上下文
+            True if history should be attached
         """
         if not conversation_history:
             return False
-        
-        # 检查查询中是否包含引用词
+
+        # Chinese + English cue words for follow-ups
         reference_keywords = [
             '它', '这', '那', '上面', '上述', '刚才', '之前', '前面',
             '这个', '那个', '这些', '那些', '同样', '也', '还',
             'it', 'this', 'that', 'above', 'previous', 'same', 'also'
         ]
-        
+
         query_lower = current_query.lower()
         for keyword in reference_keywords:
             if keyword in query_lower:
                 return True
-        
+
         return False

@@ -4,13 +4,13 @@ identity:
   label:
     en_US: Data Summary
     zh_Hans: 数据总结
-    pt_BR: Data Summary
+    pt_BR: Resumo de dados
  
 description:
   human:
     en_US: Analyze and summarize data content with customizable rules and insights
     zh_Hans: 使用可自定义规则分析和总结数据内容，提供洞察
-    pt_BR: Analyze and summarize data content with customizable rules and insights
+    pt_BR: Analisa e resume dados com regras personalizáveis e insights.
   llm: A tool that analyzes data content and provides concise summaries, insights, and analysis with optional custom rules
 
 parameters:
@@ -20,11 +20,11 @@ parameters:
     label:
       en_US: Data Content
       zh_Hans: 数据内容
-      pt_BR: Data Content
+      pt_BR: Conteúdo dos dados
     human_description:
       en_US: The data content to be analyzed and summarized
       zh_Hans: 需要分析和总结的数据内容
-      pt_BR: The data content to be analyzed and summarized
+      pt_BR: Dados brutos a serem analisados e resumidos.
     llm_description: The raw data content that needs to be analyzed and summarized
     form: llm
 
@@ -35,11 +35,11 @@ parameters:
     label:
       en_US: LLM Model
       zh_Hans: 大语言模型
-      pt_BR: LLM Model
+      pt_BR: Modelo de LLM
     human_description:
       en_US: The large language model to use for data analysis and summarization
       zh_Hans: 用于数据分析和总结的大语言模型
-      pt_BR: The large language model to use for data analysis and summarization
+      pt_BR: Modelo de linguagem usado para análise e sumarização.
     llm_description: The LLM model to use for generating data summaries and insights
     form: form
 
@@ -49,11 +49,11 @@ parameters:
     label:
       en_US: Analysis Query
       zh_Hans: 分析查询
-      pt_BR: Analysis Query
+      pt_BR: Pergunta de análise
     human_description:
       en_US: Specific question or focus area for the data analysis
       zh_Hans: 数据分析的具体问题或关注领域（通常是sys.query）
-      pt_BR: Specific question or focus area for the data analysis
+      pt_BR: Pergunta ou foco da análise (em fluxos Dify, costuma ser sys.query).
     llm_description: The specific question or analysis focus to guide data summarization
     form: llm
 
@@ -63,11 +63,11 @@ parameters:
     label:
       en_US: Custom Rules
       zh_Hans: 自定义规则
-      pt_BR: Custom Rules
+      pt_BR: Regras personalizadas
     human_description:
       en_US: Optional custom rules or guidelines for data analysis
       zh_Hans: 可选的数据分析自定义规则或指导原则
-      pt_BR: Optional custom rules or guidelines for data analysis
+      pt_BR: Regras ou diretrizes opcionais para orientar a análise.
     llm_description: Additional custom rules or specific requirements for the data analysis and summarization process
     form: llm
 
@@ -78,11 +78,11 @@ parameters:
     label:
       en_US: Custom Prompt
       zh_Hans: 自定义Prompt
-      pt_BR: Custom Prompt
+      pt_BR: Prompt personalizado
     human_description:
       en_US: Optional custom prompt for LLM, supports {{data}} and {{query}} placeholders
       zh_Hans: 可选的自定义LLM分析指令，支持{{data}}和{{query}}占位符
-      pt_BR: Optional custom prompt for LLM, supports {{data}} and {{query}} placeholders
+      pt_BR: Prompt opcional para o LLM; suporta os placeholders {{data}} e {{query}}.
     llm_description: User-defined prompt for LLM, {{data}} will be replaced by data_content, {{query}} by query
     form: llm
 

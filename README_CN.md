@@ -1,85 +1,87 @@
-# SchemaRAG 数据库架构RAG插件
+# SchemaRAG Database Schema RAG Plugin
 
 [![Version](https://img.shields.io/badge/version-0.1.6-blue.svg)](https://github.com/weijunjiang123/schemarag)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
 
-**作者:** joto  
-**版本:** 0.1.6 
-**类型:** 工具
-**仓库:** <https://github.com/JOTO-AI/SchemaRAG-dify-plugin>
+**Author:** joto  
+**Version:** 0.1.6  
+**Type:** tool  
+**Repository:** <https://github.com/JOTO-AI/SchemaRAG-dify-plugin>
+
+> **Note:** This file keeps the historical name `README_CN.md` and is maintained in **English**. The canonical copy is [README.md](./README.md).
 
 ---
 
 <img src="./_assets/logo.jpg" height="100" alt="logo" style="border-radius:10px;">
 
-## 概述
+## Overview
 
-SchemaRAG 是一个专为 Dify 平台设计的数据库架构RAG插件，能够自动分析数据库结构、构建知识库并实现自然语言转SQL查询。该插件提供了完整的数据库schema分析和智能查询解决方案，开箱即用。
+SchemaRAG is a database schema RAG plugin designed specifically for the Dify platform. It can automatically analyze database structures, build knowledge bases, and implement natural language to SQL queries. This plugin provides a complete database schema analysis and intelligent query solution, ready to use out of the box.
 
-示例工作流[下载](https://github.com/JOTO-AI/SchemaRAG-dify-plugin/blob/main/demo/text2sql-workflow.yml)
-
----
-
-## ✨ 核心功能
-
-- **多数据库支持**: MySQL, PostgreSQL, MSSQL, Oracle, 达梦自动适配语法差异
-- **schema自动分析**: 一键生成数据字典，结构可视化
-- **知识库上传**: 自动上传到 Dify，支持增量更新
-- **自然语言转SQL**: 开箱即用，支持复杂查询
-- **AI 数据分析**：分析查询数据，支持自定义规则
-- **数据可视化**：提供可视化工具，llm推荐图表和字段
-- **安全机制**: 仅限SELECT，支持字段白名单，最低权限原则
-- **灵活支持**: 兼容主流大模型
+Example workflow [download](https://github.com/JOTO-AI/SchemaRAG-dify-plugin/blob/main/demo/text2sql-workflow.yml)
 
 ---
 
-## 📋 配置参数
+## ✨ Core Features
 
-| 参数名            | 类型     | 必填 | 说明                         | 示例                      |
-|------------------|----------|------|------------------------------|---------------------------|
-| Dataset API Key  | secret   | 是   | Dify知识库API密钥             | dataset-xxx               |
-| Database Type    | select   | 是   | 数据库类型 MySQL/PostgreSQL... | MySQL                     |
-| Database Host    | string   | 是   | 数据库主机/IP                 | 127.0.0.1                 |
-| Database Port    | number   | 是   | 数据库端口                    | 3306/5432                 |
-| Database User    | string   | 是   | 数据库用户名                  | root                      |
-| Database Password| secret   | 是   | 数据库密码                    | ******                    |
-| Database Name    | string   | 是   | 数据库名称                    | mydb                      |
-| Dify Base URL    | string   | 否   | Dify API基础URL               | `https://api.dify.ai/v1`  |
+- **Multi-Database Support**: MySQL, PostgreSQL, MSSQL, Oracle, Dameng (DM), automatic syntax adaptation
+- **Schema Auto-Analysis**: One-click data dictionary generation, structure visualization
+- **Knowledge Base Upload**: Automatic upload to Dify, supports incremental updates
+- **Natural Language to SQL**: Ready to use out of the box, supports complex queries
+- **AI Data Analysis**: Analyze query data, supports custom rules
+- **Data Visualization**: Provides visualization tools, LLM recommends charts and fields
+- **Security Mechanism**: SELECT-only access, supports field whitelist, minimum privilege principle
+- **Flexible Support**: Compatible with mainstream large language models
 
-## 支持的数据库类型
+---
 
-| 数据库类型 | 默认端口 | 驱动程序 | 连接字符串格式 |
-|------------|----------|----------|----------------|
+## 📋 Configuration Parameters
+
+| Parameter Name    | Type   | Required | Description                    | Example                   |
+|------------------|--------|----------|--------------------------------|---------------------------|
+| Dataset API Key  | secret | Yes      | Dify knowledge base API key    | dataset-xxx               |
+| Database Type    | select | Yes      | Database type MySQL/PostgreSQL/MSSQL/Oracle/DM | MySQL                     |
+| Database Host    | string | Yes      | Database host/IP               | 127.0.0.1                 |
+| Database Port    | number | Yes      | Database port                  | 3306/5432                 |
+| Database User    | string | Yes      | Database username              | root                      |
+| Database Password| secret | Yes      | Database password              | ******                    |
+| Database Name    | string | Yes      | Database name                  | mydb                      |
+| Dify Base URL    | string | No       | Dify API base URL              | `https://api.dify.ai/v1`  |
+
+## Supported Database Types
+
+| Database Type | Default Port | Driver | Connection String Format |
+|---------------|--------------|--------|--------------------------|
 | MySQL | 3306 | pymysql | `mysql+pymysql://user:password@host:port/database` |
 | PostgreSQL | 5432 | psycopg2-binary | `postgresql://user:password@host:port/database` |
 | Microsoft SQL Server | 1433 | pymssql | `mssql+pymssql://user:password@host:port/database` |
 | Oracle | 1521 | oracledb | `oracle+oracledb://user:password@host:port/database` |
-| 达梦数据库 | 5236 | dm+pymysql | `dm+pymysql://user:password@host:port/database` |
+| Dameng (DM) | 5236 | dm+pymysql | `dm+pymysql://user:password@host:port/database` |
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 方式一：命令行运行
+### Method 1: Command Line
 
 ```bash
 uv run main.py 
 ```
 
-### 方式二：Dify 插件集成
+### Method 2: Dify Plugin Integration
 
-1. 在 Dify 平台插件配置界面填写上述参数
-![插件配置](./_assets/image-1.png)
+1. Fill in the above parameters in the Dify platform plugin configuration interface
+![Plugin Configuration](./_assets/image-1.png)
 
-2. 在配置好，准确无误后点击保存，会自动在dify中构建配置的数据库schema知识库
+2. After configuration is complete and accurate, click save to automatically build the configured database schema knowledge base in Dify
 
-3. 在工作流中添加工具，并配置刚刚创建的知识库id（知识库id在知识库页面的URL处）
-![工作流节点配置](./_assets/image-4.png)
+3. Add tools in the workflow and configure the knowledge base ID that was just created (the knowledge base ID is in the URL of the knowledge base page)
+![Workflow Node Configuration](./_assets/image-4.png)
 
-4. 提供sql执行工具，传入生成的sql可直接执行，支持md，json输出
-![工作流节点配置](./_assets/image-5.png)
+4. Provide SQL execution tool, input the generated SQL for direct execution, supports markdown and json output
+![Workflow Node Configuration](./_assets/image-5.png)
 
-### 方式三：代码调用
+### Method 3: Code Invocation
 
 ```python
 from provider.build_schema_rag import BuildSchemaRAG
@@ -99,213 +101,214 @@ print(result)
 
 ---
 
-## 🛠️ 工具组件
+## 🛠️ Tool Components
 
-### 1. text2sql 工具
+### 1. text2sql Tool
 
-**自然语言转SQL查询工具** - 使用数据库架构知识库将自然语言问题转换为SQL查询
+**Natural Language to SQL Query Tool** - Convert natural language questions to SQL queries using database schema knowledge base
 
-#### 核心功能
+#### Core Features
 
-- **智能查询转换**: 将自然语言问题自动转换为准确的SQL查询语句
-- **多数据库支持**: 支持MySQL和PostgreSQL两种SQL方言
-- **知识库检索**: 基于数据库架构知识库进行智能检索和匹配
-- **开箱即用**: 配置好知识库即可直接使用，无需额外设置
-- **自定义prompt规则**: 添加自定以提示词，配置自定义规则
+- **Intelligent Query Conversion**: Automatically convert natural language questions to accurate SQL query statements
+- **Multi-Database Support**: Supports MySQL, PostgreSQL, MSSQL, Oracle, and DM SQL dialects
+- **Knowledge Base Retrieval**: Intelligent retrieval and matching based on database schema knowledge base
+- **Ready to Use**: Can be used directly after configuring the knowledge base, no additional setup required
+- **Customize propt rules**: Add custom to prompt words and configure custom rules
 
-#### 参数说明
+#### Parameter Configuration
 
-| 参数名 | 类型 | 必填 | 描述 |
-|--------|------|------|------|
-| dataset_id | string | 是 | 包含数据库架构的Dify知识库ID |
-| llm | model-selector | 是 | 用于生成SQL的大语言模型 |
-| content | string | 是 | 要转换为SQL的自然语言问题 |
-| dialect | select | 是 | SQL方言（MySQL/PostgreSQL）|
-| top_k | number | 否 | 从知识库检索的结果数量（默认5）|
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| dataset_id | string | Yes | Dify knowledge base ID containing database schema |
+| llm | model-selector | Yes | Large language model for SQL generation |
+| content | string | Yes | Natural language question to convert to SQL |
+| dialect | select | Yes | SQL dialect (MySQL/PostgreSQL/MSSQL/Oracle/DM) |
+| top_k | number | No | Number of results to retrieve from knowledge base (default 5) |
 
-### 2. sql_executer 工具
+### 2. sql_executer Tool
 
-**SQL查询执行工具** - 安全执行SQL查询并返回格式化结果
+**SQL Query Execution Tool** - Safely execute SQL queries and return formatted results
 
-#### 核心功能
+#### Core Features
 
-- **安全执行**: 仅支持SELECT查询，确保数据安全
-- **最大输出控制**： 提供接口控制最大查询行数，方式查询数据过多。
-- **多格式输出**: 支持JSON和Markdown两种输出格式
-- **直接连接**: 直接连接数据库执行查询，实时获取结果
-- **错误处理**: 完善的错误处理机制，提供详细的错误信息
+- **Safe Execution**: Only supports SELECT queries to ensure data security
+- **Output Control**: Provides interface to control maximum query rows to prevent excessive data queries
+- **Multi-Format Output**: Supports JSON and Markdown output formats
+- **Direct Connection**: Direct database connection for query execution, real-time results
+- **Error Handling**: Comprehensive error handling mechanism with detailed error information
 
-#### 参数说明
+#### Parameter Configuration
 
-| 参数名 | 类型 | 必填 | 描述 |
-|--------|------|------|------|
-| sql | string | 是 | 要执行的SQL查询语句 |
-| output_format | select | 是 | 输出格式（JSON/Markdown）|
-| max_line | int | 否 | 查询到的最大行数（默认1000行）|
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sql | string | Yes | SQL query statement to execute |
+| output_format | select | Yes | Output format (JSON/Markdown) |
+| max_line | int | No | Maximum number of query rows (default 1000) |
 
-### 3. sql_executer_cust 工具
+### 3. sql_executer_cust Tool
 
-**自定义SQL查询执行工具** - 自定义数据库并安全执行SQL查询并返回格式化结果
+**Custom SQL Query Execution Tool** - Custom database connection and safely execute SQL queries to return formatted results
 
-#### 核心功能
+#### Core Features
 
-- **自定义数据库连接**：支持多种数据库无需配置插件即可用
-- **安全执行**: 仅支持SELECT查询，确保数据安全
-- **最大输出控制**： 提供接口控制最大查询行数，方式查询数据过多。
-- **多格式输出**: 支持JSON和Markdown两种输出格式
-- **直接连接**: 直接连接数据库执行查询，实时获取结果
-- **错误处理**: 完善的错误处理机制，提供详细的错误信息
+- **Custom Database Connection**: Supports multiple databases without plugin configuration
+- **Safe Execution**: Only supports SELECT queries to ensure data security
+- **Output Control**: Provides interface to control maximum query rows to prevent excessive data queries
+- **Multi-Format Output**: Supports JSON and Markdown output formats
+- **Direct Connection**: Direct database connection for query execution, real-time results
+- **Error Handling**: Comprehensive error handling mechanism with detailed error information
 
-#### 参数说明
+#### Parameter Configuration
 
-| 参数名 | 类型 | 必填 | 描述 |
-|--------|------|------|------|
-| database_url | string | 是 | 数据库连接url |
-| sql | string | 是 | 要执行的SQL查询语句 |
-| output_format | select | 是 | 输出格式（JSON/Markdown）|
-| max_line | int | 否 | 查询到的最大行数（默认1000行）|
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| database_url | string | Yes | Database connection URL |
+| sql | string | Yes | SQL query statement to execute |
+| output_format | select | Yes | Output format (JSON/Markdown) |
+| max_line | int | No | Maximum number of query rows (default 1000) |
 
-数据库连接url示例：
-- mysql：mysql://user:password@host:port/dbname
+Database connection URL examples:
+- mysql: mysql://user:password@host:port/dbname
 - postgresql: postgresql://user:password@host:port/dbname
-- dameng: dameng://user:password@host:port/dbname
+- DM: dameng://user:password@host:port/dbname
 - mssql: mssql://user:password@host:port/dbname
 - oracle: oracle://user:password@host:port/dbname
 
-### 4. text2data 工具(推荐)
+### 4. text2data Tool (recommend)
 
-**自然语言转数据查询工具** - 集成 text2sql 和 sql_executer 功能，一站式完成从问题到数据的转换
+**Natural Language to Data Query Tool** - Integrates text2sql and sql_executer functionality for one-stop conversion from questions to data
 
-#### 核心功能
+#### Core Features
 
-- **端到端查询**: 自然语言问题直接转换为查询结果，无需中间步骤
-- **多数据库支持**: 支持 MySQL、PostgreSQL、MSSQL、Oracle、达梦等数据库
-- **智能输出**: 支持 JSON、Markdown、Summary 三种输出格式
-- **SQL自动修复**: 实验性功能，当SQL执行失败时自动分析错误并修复（需启用）
-- **安全执行**: 内置SQL安全策略，防止危险操作
-- **优化体验**: 使用 `<think>` 标签折叠中间过程，结果清晰展示
+- **End-to-End Query**: Convert natural language questions directly to query results without intermediate steps
+- **Multi-Database Support**: Supports MySQL, PostgreSQL, MSSQL, Oracle, and DM databases
+- **Smart Output**: Supports JSON, Markdown, and Summary output formats
+- **SQL Auto-Repair**: Experimental feature that automatically analyzes and fixes SQL errors when execution fails (requires enablement)
+- **Safe Execution**: Built-in SQL security policies to prevent dangerous operations
+- **Optimized Experience**: Uses `<think>` tags to fold intermediate processes, with clear result display
 
-#### 参数说明
+#### Parameter Configuration
 
-| 参数名 | 类型 | 必填 | 描述 |
-|--------|------|------|------|
-| dataset_id | string | 是 | 包含数据库架构的Dify知识库ID，支持多个ID用逗号分隔 |
-| llm | model-selector | 是 | 用于生成SQL和分析的大语言模型 |
-| content | string | 是 | 要转换为SQL的自然语言问题 |
-| dialect | select | 是 | SQL方言（MySQL/PostgreSQL/MSSQL/Oracle/达梦）|
-| output_format | select | 是 | 输出格式（JSON/Markdown/Summary）|
-| top_k | number | 否 | 从知识库检索的结果数量（默认5）|
-| max_rows | number | 否 | 返回的最大行数（默认500，防止过多数据）|
-| example_dataset_id | string | 否 | 示例知识库ID，可提供SQL示例提高生成质量 |
-| enable_refiner | boolean | 否 | 启用SQL自动修复功能（实验性，默认false）|
-| max_refine_iterations | number | 否 | SQL修复最大尝试次数（1-5，默认3）|
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| dataset_id | string | Yes | Dify knowledge base ID containing database schema, supports multiple IDs separated by commas |
+| llm | model-selector | Yes | Large language model for SQL generation and analysis |
+| content | string | Yes | Natural language question to convert to SQL |
+| dialect | select | Yes | SQL dialect (MySQL/PostgreSQL/MSSQL/Oracle/DM) |
+| output_format | select | Yes | Output format (JSON/Markdown/Summary) |
+| top_k | number | No | Number of results to retrieve from knowledge base (default 5) |
+| max_rows | number | No | Maximum number of rows to return (default 500, prevents excessive data) |
+| example_dataset_id | string | No | Example knowledge base ID, can provide SQL examples to improve generation quality |
+| enable_refiner | boolean | No | Enable SQL auto-repair feature (experimental, default false) |
+| max_refine_iterations | number | No | Maximum SQL repair attempts (1-5, default 3) |
 
-#### SQL自动修复功能（实验性）
+#### SQL Auto-Repair Feature (Experimental)
 
-当启用 `enable_refiner` 时，如果生成的SQL执行失败，系统会：
+When `enable_refiner` is enabled, if the generated SQL execution fails, the system will:
 
-1. **自动分析错误**: 捕获数据库错误信息和具体原因
-2. **智能修复**: 使用LLM分析错误并生成修复后的SQL
-3. **迭代优化**: 支持最多N次修复尝试（可配置）
-4. **透明过程**: 在 `<think>` 标签中展示修复过程
+1. **Auto-Analyze Errors**: Capture database error messages and specific causes
+2. **Intelligent Repair**: Use LLM to analyze errors and generate repaired SQL
+3. **Iterative Optimization**: Support up to N repair attempts (configurable)
+4. **Transparent Process**: Display repair process within `<think>` tags
 
-**修复场景示例**:
-- ✅ 列名拼写错误（如 `name` → `username`）
-- ✅ 表名不存在或错误
-- ✅ JOIN条件错误
-- ✅ 数据类型不匹配
-- ✅ 语法错误（方言特定语法）
+**Repair Scenario Examples**:
+- ✅ Column name spelling errors (e.g., `name` → `username`)
+- ✅ Table name does not exist or is incorrect
+- ✅ JOIN condition errors
+- ✅ Data type mismatches
+- ✅ Syntax errors (dialect-specific syntax)
 
-**使用建议**:
-- 🧪 实验性功能，开启会额外增加token的消耗
-- 📝 复杂Schema场景下效果更佳
-- ⚡ 会增加2-10秒的响应时间
-- 💰 每次修复消耗约2000-3000 tokens
+**Usage Recommendations**:
+- 🧪 Experimental feature,Enabling it will increase the consumption of tokens additionally.
+- 📝 Better results in complex Schema scenarios
+- ⚡ Adds 2-10 seconds to response time
+- 💰 Each repair consumes approximately 2000-3000 tokens
 
-### 5. data_summary 工具
+### 5. data_summary Tool
 
-**数据总结分析工具** - 使用大语言模型对数据内容进行智能分析和总结
+**Data Summary Analysis Tool** - Intelligent data content analysis and summarization using large language models
 
-#### 分析能力
+#### Analysis Capabilities
 
-- **自定义规则**: 支持用户定义分析规则和指导原则
-- **数据格式智能识别**: 自动识别JSON等数据格式并优化处理
-- **性能优化**: 缓存常用配置，减少响应时间
+- **Custom Rules**: Supports user-defined analysis rules and guidelines
+- **Smart Data Format Recognition**: Automatically identifies JSON and other data formats for optimized processing
+- **Performance Optimized**: Cached common configurations to reduce response time
 
-#### 配置选项
+#### Configuration Options
 
-| 参数名 | 类型 | 必填 | 描述 |
-|--------|------|------|------|
-| data_content | string | 是 | 需要分析的数据内容 |
-| llm | model-selector | 是 | 用于分析的大语言模型 |
-| query | string | 是 | 分析查询或关注领域 |
-| custom_rules | string | 否 | 自定义分析规则 |
-| user_prompt | string | 否 | 自定义prompt |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| data_content | string | Yes | Data content to be analyzed |
+| llm | model-selector | Yes | Large language model for analysis |
+| query | string | Yes | Analysis query or focus area |
+| custom_rules | string | No | Custom analysis rules |
+| user_prompt | string | No | Custom prompt |
 
-### 6. llm_chart_generator 工具
+### 6. llm_chart_generator Tool
 
-**LLM 智能绘图模块** - 基于大语言模型推荐图标类型和字段，使用[antv](https://github.com/antvis/)渲染图表功能，提供高可维护的端到端图表解决方案
+**LLM Intelligent Chart Generation Module** - Based on large language models to recommend chart types and fields, using [antv](https://github.com/antvis/) to render charts, providing highly maintainable end-to-end chart solutions
 
-#### 功能特性
+#### Features
 
-- **智能分析**: 自动分析用户问题和数据，智能选择最合适的图表类型
-- **多图表支持**: 支持折线图、饼图、直方图等主流图表
-- **高可维护性**: 模块化设计，接口清晰，易于扩展和维护
-- **统一规范**: 图表配置采用标准化 JSON 格式，便于集成和解析
-- **降级方案**: 图表生成失败时自动降级为表格等展示方式
-- **配置验证**: 完善的配置校验和错误处理机制，保障稳定性
+- **Intelligent Analysis**: Automatically analyzes user questions and data, intelligently selects the most suitable chart type
+- **Multi-Chart Support**: Supports mainstream charts such as bar charts, line charts, pie charts, scatter plots, histograms
+- **High Maintainability**: Modular design with clear interfaces, easy to extend and maintain
+- **Unified Standards**: Chart configuration uses standardized JSON format for easy integration and parsing
+- **Fallback Solutions**: Automatically falls back to table display when chart generation fails
+- **Configuration Validation**: Comprehensive configuration validation and error handling mechanisms to ensure stability
 
-#### 配置选项
+#### Configuration Options
 
-| 参数名         | 类型           | 必填 | 描述                                                         |
-|----------------|----------------|------|--------------------------------------------------------------|
-| user_question  | string         | 是   | 用户问题，描述需要生成的图表类型和需求（如销售趋势、市场份额）|
-| data           | string         | 是   | 用于可视化的数据，支持 JSON、CSV 或结构化数据                |
-| llm            | model-selector | 是   | 用于分析和生成图表的大语言模型                               |
-| sql_query        | string         | 是   | 查询的sql语句，用于推荐图表和字段                           |
-
-
----
-
-## ❓ 常见问题
-
-**Q: 支持哪些数据库？**  
-A: 当前支持 MySQL, PostgreSQL, MSSQL, Oracle, 达梦 。
-
-**Q: 数据是否安全？**  
-A: 插件仅读取数据库结构信息，构建 Dify 知识库，敏感信息不会上传。
-
-**Q: 如何配置数据库？**  
-A: 在 Dify 插件页面中配置数据库和知识库相关信息，配置完成后会自动在 Dify 中构建 schema 知识库。
-
-**Q: 如何使用 text2sql 工具？**  
-A: 在配置好数据库并生成 schema 知识库后，需要在生成的知识库 URL 中获取 dataset_id 并填入工具中，指定索引的知识库，并且配置好其他信息即可使用。
-
-**Q: data_summary 工具支持哪些数据格式？**  
-A: 支持文本、JSON 等多种数据格式，工具会自动识别并优化处理。支持最大 50,000 字符的数据内容。
-
-**Q: 自定义规则如何使用？**  
-A: 可以在 custom_rules 参数中指定特定的分析要求、关注点或约束条件，最大支持 2,000 字符。
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| user_question | string | Yes | User question describing the chart type and requirements (e.g., sales trends, market share) |
+| data | string | Yes | Data for visualization, supports JSON, CSV, or structured data |
+| llm | model-selector | Yes | Large language model for analysis and chart generation |
+| sql_query | string | Yes | SQL query statement used to recommend charts and fields |
 
 ---
 
-## 📸 示例截图
+## ❓ FAQ
 
-![Schema 构建界面](./_assets/image-0.png)
+**Q: Which databases are supported?**  
+A: Currently supports MySQL, PostgreSQL, MSSQL, Oracle, and Dameng (DM).
 
-![查询结果展示](./_assets/image-2.png)
+**Q: Is the data secure?**  
+A: The plugin only reads database structure information to build Dify knowledge base. Sensitive information is not uploaded.
 
-![数据总结报告](./_assets/image-3.png)
+**Q: How to configure the database?**  
+A: Configure database and knowledge base related information in the Dify plugin page. After configuration, it will automatically build the schema knowledge base in Dify.
+
+**Q: How to use the text2sql tool?**  
+A: After configuring the database and generating the schema knowledge base, you need to obtain the dataset_id from the generated knowledge base URL and fill it into the tool to specify the indexed knowledge base, and configure other information to use it.
+
+**Q: What data formats does the data_summary tool support?**  
+A: Supports multiple data formats including text and JSON. The tool automatically recognizes and optimizes processing. Supports data content up to 50,000 characters.
+
+**Q: How to use custom rules?**  
+A: You can specify specific analysis requirements, focus points, or constraints in the custom_rules parameter, supporting up to 2,000 characters.
 
 ---
 
-## 📞 联系方式
+## 📸 Example Screenshots
 
-- **开发者**: [Dylan Jiang](https://github.com/weijunjiang123)
-- **邮箱**: <weijun.jiang@jototech.cn>
+![Schema Building Interface](./_assets/image-0.png)
+
+![Workflow Configuration](./_assets/image-1.png)
+
+![Query Results Display](./_assets/image-2.png)
+
+![Data Summary Report](./_assets/image-3.png)
 
 ---
 
-## 📄 许可证
+## 📞 Contact
+
+- **Developer**: [Dylan Jiang](https://github.com/weijunjiang123)
+- **Email**: <weijun.jiang@jototech.cn>
+
+---
+
+## 📄 License
 
 Apache-2.0 license

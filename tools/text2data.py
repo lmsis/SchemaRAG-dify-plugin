@@ -19,7 +19,6 @@ from utils import (
     format_numeric_values
 )
 
-# 添加项目根目录到Python路径，以便导入service模块
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
@@ -27,38 +26,34 @@ if project_root not in sys.path:
 
 class Text2DataTool(Tool):
     """
-    Text to Data Tool - Convert natural language questions to SQL queries and execute them to return data
-    
-    功能特性:
-    1. 多知识库检索支持 - 支持从多个知识库同时检索schema信息
-    2. 示例知识库支持 - 支持检索SQL示例以提高生成质量
-    3. SQL安全策略 - 防止危险的SQL操作
-    4. 最大行数限制 - 防止返回过多数据
-    5. 数值格式化 - 避免科学计数法显示
+    Text to Data — turn natural language into SQL, execute, return formatted data.
+
+    Features:
+    1. Multi-dataset retrieval for schema
+    2. Optional example dataset for better SQL quality
+    3. SQL safety validation (dangerous statements blocked)
+    4. Max row limit
+    5. Numeric formatting without scientific notation
     """
-    
-    # 性能和安全相关常量
+
     DEFAULT_TOP_K = 5
     DEFAULT_DIALECT = "mysql"
     DEFAULT_RETRIEVAL_MODEL = "semantic_search"
     DEFAULT_MAX_ROWS = 500
-    MAX_CONTENT_LENGTH = 10000  # 最大输入内容长度
-    DECIMAL_PLACES = PerformanceConfig.DECIMAL_PLACES  # 小数位数
+    MAX_CONTENT_LENGTH = 10000
+    DECIMAL_PLACES = PerformanceConfig.DECIMAL_PLACES
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # 初始化知识库服务
         self.api_uri = self.runtime.credentials.get("api_uri")
         self.dataset_api_key = self.runtime.credentials.get("dataset_api_key")
         self.knowledge_service = KnowledgeService(self.api_uri, self.dataset_api_key)
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(plugin_logger_handler)
 
-        # 初始化数据库服务
         self.db_service = DatabaseService()
 
-        # 从 provider 获取数据库配置
         credentials = self.runtime.credentials
         self.db_type = credentials.get("db_type")
         self.db_host = credentials.get("db_host")
@@ -71,10 +66,9 @@ class Text2DataTool(Tool):
 
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage]:
         """
-        Convert natural language questions to SQL queries, execute them, and return formatted results
+        Convert natural language to SQL, execute, and return formatted results.
         """
         try:
-            # 获取参数并设置默认值
             dataset_id = tool_parameters.get("dataset_id")
             llm_model = tool_parameters.get("llm")
             content = tool_parameters.get("content")
@@ -84,86 +78,75 @@ class Text2DataTool(Tool):
             output_format = tool_parameters.get("output_format", "json")
             max_rows = tool_parameters.get("max_rows", self.DEFAULT_MAX_ROWS)
             example_dataset_id = tool_parameters.get("example_dataset_id")
-            
-            # SQL Refiner 参数
+
             enable_refiner = tool_parameters.get("enable_refiner", "False")
-            # 处理字符串类型的布尔值（来自select选项）
             if isinstance(enable_refiner, str):
                 enable_refiner = enable_refiner.lower() in ['true', '1', 'yes']
             elif not isinstance(enable_refiner, bool):
                 enable_refiner = False
-                
+
             max_refine_iterations = tool_parameters.get("max_refine_iterations", 3)
 
-            # 验证必要参数
             if not dataset_id:
-                self.logger.error("错误: 缺少知识库ID")
-                raise ValueError("缺少知识库ID")
+                self.logger.error("Error: dataset_id is required")
+                raise ValueError("dataset_id is required")
 
             if not content:
-                self.logger.error("错误: 缺少问题内容")
-                raise ValueError("缺少问题内容")
-            
-            # 验证内容长度
+                self.logger.error("Error: question content is required")
+                raise ValueError("Question content is required")
+
             if len(content) > self.MAX_CONTENT_LENGTH:
-                self.logger.error(f"错误: 问题内容过长，最大长度为 {self.MAX_CONTENT_LENGTH}")
-                raise ValueError(f"问题内容过长，最大长度为 {self.MAX_CONTENT_LENGTH}")
+                self.logger.error(f"Error: question too long, max length is {self.MAX_CONTENT_LENGTH}")
+                raise ValueError(f"Question too long, max length is {self.MAX_CONTENT_LENGTH}")
 
             if not llm_model:
-                self.logger.error("错误: 缺少LLM模型配置")
-                raise ValueError("缺少LLM模型配置")
+                self.logger.error("Error: LLM model configuration is required")
+                raise ValueError("LLM model configuration is required")
 
             if not self.api_uri or not self.dataset_api_key:
-                self.logger.error("错误: 缺少API配置信息")
-                raise ValueError("API配置无效")
+                self.logger.error("Error: API configuration is incomplete")
+                raise ValueError("Invalid API configuration")
 
-            # 验证数据库配置
             if not all([self.db_type, self.db_host, self.db_port, self.db_user, self.db_password, self.db_name]):
-                self.logger.error("错误: 数据库配置不完整")
-                raise ValueError("数据库配置无效")
-            
-            # 验证max_rows参数
+                self.logger.error("Error: database configuration is incomplete")
+                raise ValueError("Invalid database configuration")
+
             if not isinstance(max_rows, int) or max_rows < 1:
-                self.logger.warning(f"无效的max_rows值: {max_rows}，使用默认值 {self.DEFAULT_MAX_ROWS}")
+                self.logger.warning(f"Invalid max_rows={max_rows}, using default {self.DEFAULT_MAX_ROWS}")
                 max_rows = self.DEFAULT_MAX_ROWS
 
-            # 步骤1: 使用多知识库检索相关的schema信息
-            self.logger.info(f"从知识库 {dataset_id} 检索架构信息，查询长度: {len(content)}")
+            self.logger.info(f"Retrieving schema from dataset(s) {dataset_id}, query length: {len(content)}")
 
             try:
-                # 使用多知识库检索功能
                 schema_info = self.knowledge_service.retrieve_schema_from_multiple_datasets(
                     dataset_id, content, top_k, retrieval_model
                 )
             except Exception as e:
-                self.logger.error(f"检索架构信息时发生错误: {str(e)}")
-                schema_info = "未找到相关的数据库架构信息"
+                self.logger.error(f"Error retrieving schema: {str(e)}")
+                schema_info = "No relevant database schema was found"
 
             if not schema_info or not schema_info.strip():
-                self.logger.warning("未从知识库检索到相关的架构信息")
-                schema_info = "未找到相关的数据库架构信息"
+                self.logger.warning("No relevant schema retrieved from knowledge base")
+                schema_info = "No relevant database schema was found"
 
-            # 步骤2: 检索示例信息（如果提供了示例知识库ID）
             example_info = ""
             if example_dataset_id and example_dataset_id.strip():
-                self.logger.info(f"从示例知识库 {example_dataset_id} 检索示例信息")
+                self.logger.info(f"Retrieving examples from dataset(s) {example_dataset_id}")
                 try:
                     example_info = self.knowledge_service.retrieve_schema_from_multiple_datasets(
                         example_dataset_id, content, top_k, retrieval_model
                     )
                     if example_info and example_info.strip():
-                        self.logger.info(f"检索到示例信息，长度: {len(example_info)}")
+                        self.logger.info(f"Retrieved examples, length: {len(example_info)}")
                     else:
-                        self.logger.info("未检索到相关的示例信息")
+                        self.logger.info("No relevant examples retrieved")
                 except Exception as e:
-                    self.logger.warning(f"检索示例信息时发生错误: {str(e)}")
+                    self.logger.warning(f"Error retrieving examples: {str(e)}")
                     example_info = ""
 
-            # 步骤3: 构建预定义的prompt并生成SQL（思考过程）
-            self.logger.info("正在生成SQL查询...")
-            
-            # 输出思考过程的开始标记
-            yield self.create_text_message(text="<think>\n💭 生成SQL查询\n\n")
+            self.logger.info("Generating SQL query...")
+
+            yield self.create_text_message(text="<think>\n💭 Generating SQL query\n\n")
 
             try:
                 system_prompt = text2sql_prompt._build_system_prompt(dialect=dialect)
@@ -173,7 +156,6 @@ class Text2DataTool(Tool):
                     example_info=example_info
                 )
 
-                # 使用流式输出生成SQL
                 response = self.session.model.llm.invoke(
                     model_config=llm_model,
                     prompt_messages=[
@@ -183,75 +165,63 @@ class Text2DataTool(Tool):
                     stream=True,
                 )
 
-                # 收集流式输出的SQL查询
                 sql_query = ""
                 sql_chunks = []
-                
-                # 输出一个换行符，让SQL显示更清晰
+
                 yield self.create_text_message(text="\n")
-                
+
                 for chunk in response:
                     if chunk.delta.message and chunk.delta.message.content:
                         chunk_content = chunk.delta.message.content
                         sql_chunks.append(chunk_content)
-                        # 实时输出SQL片段
                         yield self.create_text_message(text=chunk_content)
-                
-                # 合并所有片段
+
                 sql_query = "".join(sql_chunks).strip()
-                
-                # 如果流式输出没有内容，尝试从完整响应中获取
+
                 if not sql_query and hasattr(response, "message") and response.message:
                     sql_query = response.message.content.strip() if response.message.content else ""
 
                 if not sql_query:
-                    self.logger.error("错误: 无法生成SQL查询")
-                    raise ValueError("生成的SQL查询为空")
+                    self.logger.error("Error: failed to generate SQL")
+                    raise ValueError("Generated SQL is empty")
 
-                # 清理并验证SQL查询（应用安全策略）
                 sql_query = _clean_and_validate_sql(sql_query)
 
                 if not sql_query or not sql_query.strip():
-                    self.logger.error("错误: 生成的SQL查询为空或无效")
-                    raise ValueError("生成的SQL查询为空或无效")
-                
-                # SQL已经在上面流式输出了，这里只需要添加换行
+                    self.logger.error("Error: generated SQL is empty or invalid")
+                    raise ValueError("Generated SQL is empty or invalid")
+
                 yield self.create_text_message(text="\n\n")
 
             except Exception as e:
-                self.logger.error(f"生成SQL查询时发生错误: {str(e)}")
+                self.logger.error(f"Error while generating SQL: {str(e)}")
                 yield self.create_text_message(text="</think>\n")
                 raise
 
-            # 步骤4: 执行SQL查询（带Refiner支持）
-            self.logger.info("正在执行SQL查询...")
-            # yield self.create_text_message(text="\n⚡ 执行查询\n")
-            
+            self.logger.info("Executing SQL query...")
+
             try:
                 results, columns = self.db_service.execute_query(
                     self.db_type, self.db_host, self.db_port,
                     self.db_user, self.db_password, self.db_name, sql_query
                 )
-                yield self.create_text_message(text=f"✅ 执行成功\n\n共返回 {len(results)} 行数据\n\n")
-                
+                yield self.create_text_message(text=f"✅ Execution succeeded\n\nReturned {len(results)} row(s)\n\n")
+
             except Exception as e:
-                self.logger.error(f"执行SQL查询时发生错误: {str(e)}")
-                yield self.create_text_message(text=f"❌ 执行失败\n\n{str(e)}\n\n")
-                
-                # 如果启用了Refiner，尝试自动修复SQL
+                self.logger.error(f"SQL execution error: {str(e)}")
+                yield self.create_text_message(text=f"❌ Execution failed\n\n{str(e)}\n\n")
+
                 if enable_refiner:
-                    self.logger.info("SQL执行失败，启动SQL Refiner进行自动修复...")
-                    yield self.create_text_message(text="\n🔧 自动修复中...\n")
-                    
+                    self.logger.info("SQL execution failed, starting SQL Refiner...")
+                    yield self.create_text_message(text="\n🔧 Auto-fix in progress...\n")
+
                     try:
-                        # 创建Refiner实例
                         refiner = SQLRefiner(
                             db_service=self.db_service,
                             llm_session=self.session,
                             logger=self.logger
                         )
-                        
-                        # 构建数据库配置字典
+
                         db_config = {
                             'db_type': self.db_type,
                             'host': self.db_host,
@@ -260,8 +230,7 @@ class Text2DataTool(Tool):
                             'password': self.db_password,
                             'dbname': self.db_name
                         }
-                        
-                        # 执行SQL修复
+
                         refined_sql, success, error_history = refiner.refine_sql(
                             original_sql=sql_query,
                             schema_info=schema_info,
@@ -271,26 +240,22 @@ class Text2DataTool(Tool):
                             llm_model=llm_model,
                             max_iterations=max_refine_iterations
                         )
-                        
+
                         if success:
-                            self.logger.info(f"SQL修复成功！经过 {len(error_history)} 次迭代")
-                            # 显示修复后的SQL
+                            self.logger.info(f"SQL refinement succeeded after {len(error_history)} iteration(s)")
                             yield self.create_text_message(
-                                text=f"✨ 修复成功（尝试{len(error_history)}次）\n\n{refined_sql}\n\n"
+                                text=f"✨ Refined successfully ({len(error_history)} attempt(s))\n\n{refined_sql}\n\n"
                             )
-                            
-                            # 使用修复后的SQL重新执行
+
                             results, columns = self.db_service.execute_query(
                                 self.db_type, self.db_host, self.db_port,
                                 self.db_user, self.db_password, self.db_name, refined_sql
                             )
-                            
-                            # 更新sql_query为修复后的版本（用于后续日志）
+
                             sql_query = refined_sql
-                            yield self.create_text_message(text=f"✅ 执行成功\n\n共返回 {len(results)} 行数据\n\n")
-                            
+                            yield self.create_text_message(text=f"✅ Execution succeeded\n\nReturned {len(results)} row(s)\n\n")
+
                         else:
-                            # 修复失败，返回详细错误信息
                             error_report = refiner.format_refiner_result(
                                 original_sql=sql_query,
                                 refined_sql=refined_sql,
@@ -298,44 +263,31 @@ class Text2DataTool(Tool):
                                 error_history=error_history,
                                 iterations=len(error_history)
                             )
-                            self.logger.error(f"SQL修复失败: {error_report}")
+                            self.logger.error(f"SQL refinement failed: {error_report}")
                             yield self.create_text_message(text="</think>\n")
-                            raise ValueError(f"SQL执行失败且自动修复失败:\n\n{error_report}")
-                            
+                            raise ValueError(f"SQL execution failed and auto-fix failed:\n\n{error_report}")
+
                     except Exception as refiner_error:
-                        self.logger.error(f"SQL Refiner执行异常: {str(refiner_error)}")
+                        self.logger.error(f"SQL Refiner error: {str(refiner_error)}")
                         yield self.create_text_message(text="</think>\n")
-                        raise ValueError(f"SQL执行失败: {str(e)}\n\nRefiner修复也失败: {str(refiner_error)}")
+                        raise ValueError(f"SQL execution failed: {str(e)}\n\nRefiner also failed: {str(refiner_error)}")
                 else:
-                    # 未启用Refiner，直接抛出原始错误
                     yield self.create_text_message(text="</think>\n")
                     raise
-            
-            # 结束思考过程标记
+
             yield self.create_text_message(text="</think>\n\n")
 
-            # 早期检查结果
             result_count = len(results)
             if result_count == 0:
-                yield self.create_text_message("📊 **查询结果**\n\n查询执行成功，但没有返回数据")
+                yield self.create_text_message("📊 **Query result**\n\nQuery ran successfully but returned no rows")
                 return
 
-            # 检查结果大小，应用最大行数限制
-            # truncated = False
             if result_count > max_rows:
-                self.logger.warning(f"警告: 查询返回了 {result_count} 行数据，结果已截断到 {max_rows} 行")
+                self.logger.warning(f"Warning: query returned {result_count} rows, truncated to {max_rows}")
                 results = results[:max_rows]
-                # truncated = True
 
-            # 格式化数值，避免科学计数法
             formatted_results = self._format_numeric_values(results)
 
-            # # 步骤5: 格式化输出（最终结果）
-            # yield self.create_text_message(text="📊 **查询结果**\n\n")
-            
-            # if truncated:
-            #     yield self.create_text_message(text=f"⚠️ *注意：查询返回 {result_count} 行数据，已截断至 {max_rows} 行*\n\n")
-            
             if output_format == "summary":
                 yield from self._handle_summary_output(formatted_results, columns, content, llm_model)
             else:
@@ -343,60 +295,60 @@ class Text2DataTool(Tool):
                     formatted_output = self.db_service._format_output(formatted_results, columns, output_format)
                     yield self.create_text_message(text=formatted_output)
                 except Exception as e:
-                    self.logger.error(f"格式化输出时发生错误: {str(e)}")
-                    raise ValueError(f"格式化输出时发生错误: {str(e)}")
+                    self.logger.error(f"Output formatting error: {str(e)}")
+                    raise ValueError(f"Output formatting error: {str(e)}")
 
-            self.logger.info(f"SQL查询结果处理完成，返回 {len(results)} 行数据")
+            self.logger.info(f"Query handling complete, returning {len(results)} row(s)")
 
         except Exception as e:
-            self.logger.error(f"执行过程中发生错误: {str(e)}")
-            raise ValueError(f"执行过程中发生错误: {str(e)}")
+            self.logger.error(f"Execution error: {str(e)}")
+            raise ValueError(f"Execution error: {str(e)}")
 
-    def _handle_summary_output(self, formatted_results: List[Dict], columns: List[str], 
+    def _handle_summary_output(self, formatted_results: List[Dict], columns: List[str],
                                content: str, llm_model: Any) -> Generator[ToolInvokeMessage]:
-        """处理摘要输出格式"""
-        self.logger.info("正在生成数据摘要...")
-        
+        """Summary output mode: LLM summarizes tabular results."""
+        self.logger.info("Generating data summary...")
+
         try:
             json_data = self.db_service._format_output(formatted_results, columns, "json")
-            
+
             if not json_data or json_data.strip() == "":
-                self.logger.warning("警告: 查询结果为空，无法生成摘要")
+                self.logger.warning("Warning: empty result set, cannot generate summary")
                 return
-            
+
             summary_system_prompt = summary_prompt._data_summary_prompt(json_data, content)
-            
+
             summary_response = self.session.model.llm.invoke(
                 model_config=llm_model,
                 prompt_messages=[
                     SystemPromptMessage(content=summary_system_prompt),
-                    UserPromptMessage(content="请根据上述数据生成摘要。"),
+                    UserPromptMessage(content="Please produce a concise summary of the data above."),
                 ],
                 stream=True,
             )
-            
+
             summary_result = ""
             for chunk in summary_response:
                 if chunk.delta.message and chunk.delta.message.content:
                     summary_content = chunk.delta.message.content
                     summary_result += summary_content
                     yield self.create_text_message(text=summary_content)
-            
+
             if not summary_result and hasattr(summary_response, "message") and summary_response.message:
                 summary_result = summary_response.message.content
                 if summary_result:
                     yield self.create_text_message(text=summary_result)
-        
+
         except Exception as e:
-            self.logger.error(f"生成摘要时发生错误: {str(e)}")
+            self.logger.error(f"Summary generation error: {str(e)}")
             try:
                 formatted_output = self.db_service._format_output(formatted_results, columns, "json")
-                self.logger.warning("摘要生成失败，返回原始数据")
+                self.logger.warning("Summary failed, returning raw JSON data")
                 yield self.create_text_message(text=formatted_output)
             except Exception as e2:
-                self.logger.error(f"数据格式化也失败了: {str(e2)}")
+                self.logger.error(f"Data formatting also failed: {str(e2)}")
                 raise
 
     def _format_numeric_values(self, results: List[Dict]) -> List[Dict]:
-        """格式化数值，避免科学计数法，保留指定小数位数"""
+        """Format numbers to avoid scientific notation."""
         return format_numeric_values(results, self.DECIMAL_PLACES, self.logger)

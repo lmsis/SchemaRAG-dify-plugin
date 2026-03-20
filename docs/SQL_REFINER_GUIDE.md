@@ -1,120 +1,111 @@
 
-# SQL Refiner 功能指南
+# SQL Refiner Guide
 
-## 📋 概述
+## Overview
 
-SQL Refiner 是一个实验性的自动SQL纠错模块，基于LLM反馈循环机制，能够自动检测和修复SQL执行过程中出现的错误。
+SQL Refiner is an **experimental** module that automatically detects and repairs SQL execution errors using an LLM feedback loop.
 
-## 🎯 功能特性
+## Features
 
-### 核心能力
-1. **自动错误检测** - 捕获SQL执行时的各种错误
-2. **智能错误分析** - 基于错误日志和Schema分析根因
-3. **迭代式修复** - 通过多次尝试逐步修正SQL
-4. **上下文感知** - 保留Schema和用户问题上下文
-5. **错误历史学习** - 避免重复相同的错误
+### Capabilities
+1. **Error detection** — captures execution failures
+2. **Root-cause hints** — uses error text and schema context
+3. **Iterative repair** — multiple attempts with refined SQL
+4. **Context-aware** — keeps schema and user question in the prompt
+5. **Error history** — prior failures are passed to the model to avoid repeats
 
-### 支持的错误类型
-- ✅ 列名错误（如拼写错误、大小写问题）
-- ✅ 表名不存在
-- ✅ 语法错误（方言特定语法）
-- ✅ 数据类型不匹配
-- ✅ JOIN条件错误
-- ✅ 聚合函数使用错误
+### Typical error classes
+- Wrong or misspelled column names
+- Missing or wrong table names
+- Dialect-specific syntax issues
+- Type mismatches in predicates
+- Bad JOIN conditions
+- Misused aggregates
 
-## 🚀 快速开始
+## Quick start
 
-### 配置参数
-在 `text2data` 工具中启用以下参数：
-- `enable_refiner`: true (启用SQL Refiner)
-- `max_refine_iterations`: 3 (最大修复尝试次数)
+### Parameters (Text2Data)
+- `enable_refiner`: `true` to turn Refiner on
+- `max_refine_iterations`: max repair attempts (e.g. `3`)
 
-### 使用示例
+### Example payload
 ```python
 {
     "dataset_id": "your_dataset_id",
     "llm": "your_llm_model",
-    "content": "查询所有用户的订单数量",
+    "content": "Count orders per user",
     "dialect": "mysql",
     "enable_refiner": true,
     "max_refine_iterations": 3
 }
 ```
 
-## 🔧 工作原理
+## How it works
 
-### 流程
-1. 用户问题 → 生成初始SQL
-2. 执行SQL查询 → 如果失败且启用Refiner
-3. SQL Refiner循环：
-   - 捕获错误信息
-   - 构建修复Prompt
-   - LLM生成新SQL
-   - 验证新SQL
-   - 迭代（最多N次）
-4. 返回修复后的SQL或错误报告
+1. User question → initial SQL generated  
+2. Execute SQL → on failure, if Refiner is enabled  
+3. Refiner loop: capture error → build repair prompt → LLM proposes SQL → validate → repeat up to N times  
+4. Return repaired SQL or a structured failure report  
 
-## 📊 使用案例
+## Example: wrong column name
 
-### 案例：列名拼写错误
-**原始问题**: 查询所有用户的姓名和邮箱
-**错误SQL**: `SELECT name, email FROM users`
-**错误信息**: Unknown column 'name' in 'field list'
-**修复后**: `SELECT username, email FROM users`
-**结果**: ✅ 第1次迭代成功
+- **Question:** list each user’s name and email  
+- **Bad SQL:** `SELECT name, email FROM users`  
+- **Error:** `Unknown column 'name' in 'field list'`  
+- **Fixed:** `SELECT username, email FROM users`  
+- **Outcome:** often succeeds within 1–2 iterations  
 
-## ⚙️ 配置说明
+## Configuration
 
-### enable_refiner
-- 类型: boolean
-- 默认: false
-- 说明: 是否启用SQL自动修复
+### `enable_refiner`
+- Type: boolean  
+- Default: `false`  
+- Enables automatic SQL repair  
 
-### max_refine_iterations
-- 类型: number
-- 范围: 1-5
-- 默认: 3
-- 说明: 最大修复尝试次数
+### `max_refine_iterations`
+- Type: number  
+- Range: 1–5  
+- Default: `3`  
 
-## 🎯 最佳实践
+## Best practices
 
-### 何时启用Refiner
-✅ 推荐: Schema复杂、多表JOIN、用户问题不精确
-❌ 不建议: 简单查询、性能要求高、生产环境
+### When to enable
+- Good: complex schemas, multi-table joins, vague questions  
+- Avoid: trivial single-table queries, strict latency SLOs, unreviewed production without testing  
 
-### 优化建议
-- 提供详细的Schema信息
-- 在示例知识库中添加常见查询模式
-- 设置合理的迭代次数（推荐3次）
+### Tips
+- Keep schema documentation rich (types, comments, relationships)  
+- Store common query patterns in an example dataset  
+- Start with 3 iterations unless you have a reason to change it  
 
-## 📈 监控与调试
+## Monitoring / logs
 
-### 日志示例
+Example log lines:
 ```
-[INFO] SQL执行失败，启动SQL Refiner进行自动修复...
-[INFO] SQL修复迭代 1/3
-[WARNING] 第1次尝试失败: Unknown column 'name'
-[INFO] SQL修复成功！迭代次数: 2
+[INFO] SQL execution failed; starting SQL Refiner...
+[INFO] SQL repair iteration 1/3
+[WARNING] Attempt 1 failed: Unknown column 'name'
+[INFO] SQL repair succeeded after 2 iteration(s)
 ```
 
-## ❓ 常见问题
+## FAQ
 
-**Q: Refiner会增加多少延迟？**
-A: 每次迭代约2-3秒，总计约5-10秒
+**Q: Extra latency?**  
+A: Roughly 2–3 seconds per iteration; total often 5–10 seconds.
 
-**Q: 消耗多少Token？**
-A: 每次迭代约1700-3000 tokens
+**Q: Token cost?**  
+A: On the order of 1.7k–3k tokens per iteration, depending on schema size.
 
-**Q: 修复失败怎么办？**
-A: 系统会返回详细错误报告，建议检查Schema完整性或手动修复
+**Q: What if repair fails?**  
+A: You get an error report; verify schema coverage and consider manual fixes.
 
-## 🔒 安全性
+## Security
 
-- 修复后的SQL仍通过安全检查
-- 仅修复SELECT查询
-- 保留数据库权限控制
+- Repaired SQL still goes through existing safety checks  
+- Intended for **SELECT** workflows  
+- Database permissions remain enforced  
 
-## 📚 相关文档
-- [Text2Data 工具文档](../README.md)
-- [数据库配置指南](./DATABASE_SUPPORT_UPDATE.md)
-- [测试指南](./TESTING_GUIDE.md)
+## Related docs
+- [Text2Data / README](../README.md)  
+- [Database support](./DATABASE_SUPPORT_UPDATE.md)  
+- [Testing](./TESTING_GUIDE.md)  

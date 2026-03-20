@@ -1,91 +1,54 @@
-# LLM Plot 核心模块
+# LLM Plot core package
 
-这是 LLM Plot 工具的核心模块，采用模块化设计，便于维护和扩展。
+Modular components behind the **LLM Plot** tool: validation, LLM-driven chart recommendation, data shaping, and AntV-based rendering.
 
-## 📁 目录结构
+## Layout
 
 ```
 core/llm_plot/
-├── __init__.py           # 模块初始化和导出
-├── README.md             # 本文档
-├── models.py             # 数据模型定义
-├── config.py             # 配置和模板管理
-├── validator.py          # 参数验证
-├── data_processor.py     # 数据处理和转换
-├── llm_analyzer.py       # LLM 分析和推荐
-└── chart_generator.py    # 图表生成
+├── __init__.py
+├── README.md
+├── models.py
+├── config.py
+├── validator.py
+├── data_processor.py
+├── llm_analyzer.py
+└── chart_generator.py
 ```
 
-## 📦 模块说明
+## Modules
 
-### 1. models.py - 数据模型
-定义核心数据结构：
-- `ChartRecommendation`: 图表推荐模型，包含图表类型、字段、标题等信息
+### `models.py`
+- `ChartRecommendation` — chart type, fields, titles, etc.
 
-### 2. config.py - 配置管理
-提供图表配置和模板：
-- `ChartConfig.BASE_CONFIG`: 基础配置模板
-- `ChartConfig.LINE_CHART_TEMPLATE`: 折线图模板
-- `ChartConfig.HISTOGRAM_CHART_TEMPLATE`: 直方图模板
-- `ChartConfig.PIE_CHART_TEMPLATE`: 饼图模板
-- `ChartConfig.get_chart_template()`: 获取指定类型的模板
-- `ChartConfig.create_chart_config()`: 创建完整的图表配置
+### `config.py`
+- `ChartConfig.BASE_CONFIG`, line / histogram / pie templates  
+- `get_chart_template()`, `create_chart_config()`  
 
-#### 图表模板特性
+**Template notes**
+- **Line** — trends/time series; configurable line width, legend-friendly defaults  
+- **Histogram** — distribution; bin count heuristics  
+- **Pie** — shares/structure; donut-friendly defaults (`innerRadius` where supported by downstream API)  
 
-**折线图模板**
-- 平滑曲线渲染
-- 可自定义线宽
-- 支持图例和工具提示
-- 适用于时间序列和趋势分析
+### `validator.py`
+- `validate_parameters`, `validate_data_format`, `validate_chart_type`, `validate_field_exists`, etc.
 
-**直方图模板**
-- 自适应区间数量
-- 淡雅背景色设计
-- 展示数据分布情况
-- 适用于频数统计
+### `data_processor.py`
+- `transform_data_for_chart`, `clean_data`, `get_data_summary`  
 
-**饼图模板**
-- 环形图设计 (innerRadius: 0.5)
-- 右侧图例布局
-- 内部标签显示
-- 统计信息展示
-- 适用于占比和结构分析
+**Shapes (typical)**
+- Line: `[{"time": "...", "value": ...}, ...]`  
+- Histogram: `[v1, v2, ...]`  
+- Pie: `[{"category": "...", "value": ...}, ...]`  
 
-### 3. validator.py - 参数验证
-提供参数验证功能：
-- `validate_parameters()`: 验证必需参数
-- `validate_data_format()`: 验证数据格式
-- `validate_chart_type()`: 验证图表类型
-- `validate_field_exists()`: 验证字段存在性
+### `llm_analyzer.py`
+- `analyze()` — user question + SQL context → recommendation  
+- `create_recommendation()` — default / structured output  
 
-### 4. data_processor.py - 数据处理
-处理和转换数据：
-- `transform_data_for_chart()`: 转换数据为图表格式
-- `clean_data()`: 数据清洗
-- `get_data_summary()`: 获取数据摘要
+### `chart_generator.py`
+- `generate_chart_config`, `generate_chart_url`, full `generate()` pipeline  
 
-支持的转换：
-- **折线图**: `[{"time": "...", "value": ...}, ...]`
-- **直方图**: `[value1, value2, ...]`
-- **饼图**: `[{"category": "...", "value": ...}, ...]`
-
-### 5. llm_analyzer.py - LLM 分析
-使用 LLM 分析数据并推荐图表：
-- `analyze()`: 分析用户问题和 SQL 查询
-- `create_recommendation()`: 创建图表推荐
-- 智能推荐最适合的图表类型
-- 提供默认推荐配置
-
-### 6. chart_generator.py - 图表生成
-生成和配置图表：
-- `generate_chart_config()`: 生成图表配置
-- `generate_chart_url()`: 调用 AntV API 生成图表
-- `generate()`: 完整的图表生成流程
-
-## 🎨 使用示例
-
-### 基础使用
+## Usage sketch
 
 ```python
 from core.llm_plot import (
@@ -94,121 +57,99 @@ from core.llm_plot import (
     ChartGenerator,
 )
 
-# 1. 验证参数
 ParameterValidator.validate_parameters(parameters)
-
-# 2. LLM 分析
 analyzer = LLMAnalyzer(session)
 recommendation = analyzer.analyze(user_question, sql_query, llm_model)
-
-# 3. 生成图表
 generator = ChartGenerator()
 chart_url = generator.generate(recommendation, data)
 ```
 
-### 自定义配置
+### Custom config
 
 ```python
 from core.llm_plot import ChartConfig
 
-# 创建自定义折线图配置
 config = ChartConfig.create_chart_config(
     chart_type="line",
     data=chart_data,
-    title="销售趋势",
-    x_title="日期",
-    y_title="销售额",
-    style={"lineWidth": 5}
+    title="Sales trend",
+    x_title="Date",
+    y_title="Revenue",
+    style={"lineWidth": 5},
 )
 ```
 
-### 数据处理
+### Data processing
 
 ```python
 from core.llm_plot import DataProcessor
 
 processor = DataProcessor()
-
-# 转换数据
 chart_data = processor.transform_data_for_chart(
     chart_type="pie",
     data=raw_data,
     x_field="category",
-    y_field="value"
+    y_field="value",
 )
-
-# 获取数据摘要
 summary = processor.get_data_summary(data)
-print(f"记录数: {summary['record_count']}")
-print(f"字段: {summary['fields']}")
+print(summary["record_count"], summary["fields"])
 ```
 
-## 🎯 设计优势
+## Design goals
 
-1. **模块化设计**: 每个模块职责单一，易于维护和测试
-2. **可扩展性**: 便于添加新的图表类型和功能
-3. **可复用性**: 核心功能可在其他项目中复用
-4. **美观模板**: 预构建的专业图表模板
-5. **类型安全**: 使用 Pydantic 模型进行类型验证
-6. **错误处理**: 完善的异常处理和日志记录
+1. Small, testable modules  
+2. Easy to add chart types  
+3. Reusable outside this plugin if needed  
+4. Sane defaults for AntV / GPT-Vis payloads  
+5. Pydantic models where applicable  
+6. Clear errors + logging  
 
-## 🔧 配置说明
+## Palette (reference)
 
-### 颜色调色板
 ```python
 palette = [
-    "#5B8FF9",  # 蓝色
-    "#61DDAA",  # 绿色
-    "#F6BD16",  # 黄色
-    "#7262fd",  # 紫色
-    "#78D3F8",  # 青色
-    "#9661BC",  # 深紫色
-    "#F6903D",  # 橙色
-    "#008685",  # 青绿色
-    "#F08BB4",  # 粉色
+    "#5B8FF9",  # blue
+    "#61DDAA",  # green
+    "#F6BD16",  # yellow
+    "#7262fd",  # purple
+    "#78D3F8",  # cyan
+    "#9661BC",  # deep purple
+    "#F6903D",  # orange
+    "#008685",  # teal
+    "#F08BB4",  # pink
 ]
 ```
 
-### AntV API 配置
-- **URL**: `https://antv-studio.alipay.com/api/gpt-vis`
-- **超时**: 30 秒
-- **主题**: academy
+## AntV GPT-Vis API
 
-#### 重要：API 接受的参数限制
+- **URL:** `https://antv-studio.alipay.com/api/gpt-vis`  
+- **Timeout:** ~30s (see code)  
+- **Theme:** e.g. `academy`  
 
-AntV GPT-Vis API 仅接受以下参数，其他参数会导致 400 Bad Request 错误：
+### Allowed payload (summary)
 
-| 参数 | 类型 | 必需 | 说明 |
-|------|------|------|------|
-| type | string | 是 | 图表类型 (line/pie/histogram) |
-| data | array | 是 | 数据数组 |
-| title | string | 否 | 图表标题 |
-| axisXTitle | string | 否 | X轴标题 |
-| axisYTitle | string | 否 | Y轴标题 |
-| theme | string | 否 | "default" \| "dark" \| "academy" |
-| style | object | 否 | 仅支持 backgroundColor, palette, lineWidth |
-| binNumber | number | 否 | 直方图分组数量 (仅直方图) |
+| Field | Notes |
+|-------|--------|
+| `type` | `line` / `pie` / `histogram`, etc. |
+| `data` | array (required) |
+| `title`, `axisXTitle`, `axisYTitle` | optional |
+| `theme` | `default` \| `dark` \| `academy` |
+| `style` | limited keys: e.g. `backgroundColor`, `palette`, `lineWidth` |
+| `binNumber` | histogram only |
 
-**不支持的参数**（会导致 400 错误）：
-- `width`, `height` - 尺寸由 API 自动控制
-- `legend`, `tooltip`, `label` - 图例、提示、标签配置
-- `innerRadius`, `statistic` - 饼图特殊配置
-- `stack`, `smooth` - 折线图特殊配置
-- `source`, `texture` - 自定义来源和纹理
+Extra keys (`width`, `height`, rich `legend` objects, …) may cause **400** responses — keep payloads minimal.
 
-参考文档: https://github.com/antvis/GPT-Vis
+Reference: [GPT-Vis](https://github.com/antvis/GPT-Vis)
 
-## 📝 版本信息
+## Version / deps
 
-- **版本**: 1.0.0
-- **Python**: >= 3.8
-- **依赖**: pydantic, requests, dify_plugin
+- Intended for **Python 3.12+** in this repo (see root `pyproject.toml`)  
+- Uses `pydantic`, HTTP client stack, `dify_plugin`  
 
-## 🤝 贡献指南
+## Contributing
 
-添加新功能时，请遵循以下原则：
-1. 保持模块职责单一
-2. 添加完整的文档字符串
-3. 编写单元测试
-4. 保持代码风格一致
-5. 更新此 README 文档
+1. Keep modules focused  
+2. Document non-obvious behavior  
+3. Add tests under `test/`  
+4. Match existing style  
+5. Update this README when behavior changes  

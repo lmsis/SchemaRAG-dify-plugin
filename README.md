@@ -8,7 +8,7 @@
 **Type:** tool  
 **Repository:** <https://github.com/JOTO-AI/SchemaRAG-dify-plugin>
 
-[中文文档](https://github.com/JOTO-AI/SchemaRAG-dify-plugin/blob/main/README_CN.md)
+[README copy (legacy `README_CN.md`)](./README_CN.md)
 
 ---
 
@@ -24,7 +24,7 @@ Example workflow [download](https://github.com/JOTO-AI/SchemaRAG-dify-plugin/blo
 
 ## ✨ Core Features
 
-- **Multi-Database Support**: MySQL, PostgreSQL, MSSQL, Oracle, DM (达梦), automatic syntax adaptation
+- **Multi-Database Support**: MySQL, PostgreSQL, MSSQL, Oracle, Dameng (DM), automatic syntax adaptation
 - **Schema Auto-Analysis**: One-click data dictionary generation, structure visualization
 - **Knowledge Base Upload**: Automatic upload to Dify, supports incremental updates
 - **Natural Language to SQL**: Ready to use out of the box, supports complex queries
@@ -56,7 +56,7 @@ Example workflow [download](https://github.com/JOTO-AI/SchemaRAG-dify-plugin/blo
 | PostgreSQL | 5432 | psycopg2-binary | `postgresql://user:password@host:port/database` |
 | Microsoft SQL Server | 1433 | pymssql | `mssql+pymssql://user:password@host:port/database` |
 | Oracle | 1521 | oracledb | `oracle+oracledb://user:password@host:port/database` |
-| DM Database (达梦) | 5236 | dm+pymysql | `dm+pymysql://user:password@host:port/database` |
+| Dameng (DM) | 5236 | dm+pymysql | `dm+pymysql://user:password@host:port/database` |
 
 ---
 
@@ -271,7 +271,7 @@ When `enable_refiner` is enabled, if the generated SQL execution fails, the syst
 ## ❓ FAQ
 
 **Q: Which databases are supported?**  
-A: Currently supports MySQL, PostgreSQL, MSSQL, Oracle, and DM (达梦).
+A: Currently supports MySQL, PostgreSQL, MSSQL, Oracle, and Dameng (DM).
 
 **Q: Is the data secure?**  
 A: The plugin only reads database structure information to build Dify knowledge base. Sensitive information is not uploaded.

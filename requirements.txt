@@ -6,12 +6,12 @@ httpx
 dify-client
 pandas
 tabulate
-# 额外的数据库驱动
+# Extra database drivers
 pymssql
 oracledb
 dmPython
-dmSQLAlchemy  # 达梦数据库 SQLAlchemy 方言适配器
+dmSQLAlchemy  # Dameng SQLAlchemy dialect adapter
 
-# LLM 智能绘图模块依赖
+# LLM chart module dependencies
 pydantic>=2.0.0
 numpy>=1.20.0

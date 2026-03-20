@@ -2,6 +2,18 @@
 
 This document describes dynamic configuration and multi–knowledge-base features in SchemaRAG-dify-plugin.
 
+## Version history
+
+### 0.1.7
+
+- **i18n**: English as default in code and logs; `en_US` / `pt_BR` / `zh_Hans` in Dify tool and provider YAMLs.
+- **`tools/tool_messages.py`**: centralized chat strings; optional **`ui_language`** on Text to Data, SQL Executor, and Custom SQL Executor (default `en_US`).
+- Docs: `docs/TRADUCAO_ATENCAO.md`, `RELEASE_NOTES.md`. See release notes on GitHub for the full list.
+
+### 0.1.6 and earlier
+
+- See git history and previous releases.
+
 ## Feature overview
 
 ### 1. Multiple knowledge bases

@@ -5,7 +5,7 @@
 SchemaRAG is a **Dify plugin** that automates database schema analysis and enables natural language to SQL query conversion. It provides intelligent database querying capabilities for the Dify platform.
 
 - **Type:** Tool Provider Plugin for Dify
-- **Version:** 0.1.6
+- **Version:** 0.1.7
 - **Language:** Python 3.12+
 - **License:** Apache-2.0
 - **Author:** joto (JOTO-AI)
@@ -306,6 +306,7 @@ test: <description>
 
 ### Examples from History
 ```
+feat: bump version to 0.1.7; i18n, tool_messages, ui_language
 feat: bump version to 0.1.6; polish docs and metadata
 feat: improve SQL executors and tools; refactor caching; tighten SQL cleanup/validation
 feat: add SQL refiner service and tests with LLM feedback loop

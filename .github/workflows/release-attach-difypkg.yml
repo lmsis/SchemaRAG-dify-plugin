@@ -1,0 +1,49 @@
+# Builds schemarag-{version}.difypkg and uploads it to THIS repo's GitHub Release.
+# Dify "Install from GitHub" only lists .difypkg assets on the release — without this step the package dropdown stays empty.
+name: Attach difypkg to release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+
+      - name: Download dify-plugin CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cd "$RUNNER_TEMP/bin"
+          wget -q "https://github.com/langgenius/dify-plugin-daemon/releases/download/0.0.6/dify-plugin-linux-amd64" -O dify-plugin
+          chmod +x dify-plugin
+
+      - name: Read plugin name and version from manifest
+        id: meta
+        run: |
+          PLUGIN_NAME=$(grep "^name:" manifest.yaml | head -1 | awk '{print $2}')
+          VERSION=$(grep "^version:" manifest.yaml | head -1 | awk '{print $2}')
+          echo "plugin_name=$PLUGIN_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building $PLUGIN_NAME $VERSION"
+
+      - name: Package plugin
+        id: pack
+        run: |
+          PKG="${{ steps.meta.outputs.plugin_name }}-${{ steps.meta.outputs.version }}.difypkg"
+          "$RUNNER_TEMP/bin/dify-plugin" plugin package . -o "$PKG"
+          ls -la "$PKG"
+          echo "package=$PKG" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "${{ steps.pack.outputs.package }}" \
+            --repo "${{ github.repository }}" \
+            --clobber

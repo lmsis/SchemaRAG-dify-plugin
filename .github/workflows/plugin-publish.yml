@@ -1,12 +1,15 @@
+# DESATIVADO: não publica no monorepo oficial / marketplace (langgenius/dify-plugins).
+# Para reativar: descomenta `release` e remove `if: false` no job `publish`.
 name: Plugin Publish Workflow
 
 on:
-  release:
-    types: [published]
+  # release:
+  #   types: [published]
   workflow_dispatch:
 
 jobs:
   publish:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

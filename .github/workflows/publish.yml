@@ -1,12 +1,16 @@
 # .github/workflows/auto-pr.yml
+# DESATIVADO: não abre PR para langgenius/dify-plugins (fora do marketplace).
+# Para reativar: descomenta `push` abaixo e remove `if: false` no job `create_pr`.
 name: Auto Create PR on Main Push
 
 on:
-  push:
-    branches: [ main ]  # Trigger on push to main
+  # push:
+  #   branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  create_pr: # Renamed job for clarity
+  create_pr:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

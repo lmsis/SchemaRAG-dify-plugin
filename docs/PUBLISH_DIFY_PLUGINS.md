@@ -1,6 +1,8 @@
 # Publicar o pacote no ecossistema `dify-plugins`
 
-Os workflows **Plugin Publish Workflow** e **Auto Create PR on Main Push** precisam de um **fork** do repositório oficial.
+> **Neste repositório** os workflows **Plugin Publish Workflow** e **Auto Create PR on Main Push** estão **desativados** (`if: false` + triggers automáticos comentados), para não abrir PR no upstream. Só voltam a correr se reativares no YAML.
+
+Se um dia reativares, precisas de um **fork** do repositório oficial:
 
 ## 1. Criar o fork
 

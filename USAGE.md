@@ -23,3 +23,7 @@ A Dify plugin for building database schema RAG: it analyzes database structure a
 ## How to use
 
 Configure the provider in Dify, run the schema build, then attach the generated dataset IDs to tools such as Text2SQL or Text2Data. See the main [README](README.md) for full workflow details.
+
+## Self-hosted: install from GitHub / signature error
+
+Installing the `.difypkg` from this repo’s releases may fail with **bad signature** if Dify has plugin verification enabled. Fix: set `FORCE_VERIFYING_SIGNATURE=false` in the Dify `docker/.env` (and ensure the plugin daemon receives it), then restart containers — see [docs/GITHUB_INSTALL_PLUGIN.md](docs/GITHUB_INSTALL_PLUGIN.md#erro-bad-signature-plugin-verification).

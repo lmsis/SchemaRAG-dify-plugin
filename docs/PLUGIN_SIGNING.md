@@ -22,7 +22,7 @@ Documentação oficial (inglês): [Signing plugins for third-party signature ver
 
 ## 2. Gerar o par de chaves (uma vez)
 
-Usa o mesmo binário **dify-plugin** que usas para `plugin package` ([releases do daemon](https://github.com/langgenius/dify-plugin-daemon/releases)):
+Usa o binário **dify-plugin** dos [releases do daemon](https://github.com/langgenius/dify-plugin-daemon/releases). O subcomando **`signature`** **não existe** em versões muito antigas do CLI (ex.: **0.0.6**); usa **≥ 0.2** ou a mesma linha que o teu *plugin daemon* (o CI deste repo usa **0.5.4** para empacotar e assinar).
 
 ```bash
 chmod +x ./dify-plugin-linux-amd64   # ou dify-plugin-darwin-arm64, etc.

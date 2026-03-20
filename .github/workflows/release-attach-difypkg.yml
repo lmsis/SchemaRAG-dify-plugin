@@ -3,11 +3,16 @@
 #
 # Optional signing: set repo secret PLUGIN_SIGNING_PRIVATE_PEM (full PEM of the private key).
 # See docs/PLUGIN_SIGNING.md — upload is always named *.difypkg (signed content replaces unsigned).
+#
+# CLI version: 0.0.6 has no `signature` subcommand; pin a current release that supports `signature sign`.
 name: Attach difypkg to release
 
 on:
   release:
     types: [published]
+
+env:
+  DIFY_PLUGIN_DAEMON_VERSION: "0.5.4"
 
 jobs:
   attach:
@@ -22,7 +27,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
           cd "$RUNNER_TEMP/bin"
-          wget -q "https://github.com/langgenius/dify-plugin-daemon/releases/download/0.0.6/dify-plugin-linux-amd64" -O dify-plugin
+          wget -q "https://github.com/langgenius/dify-plugin-daemon/releases/download/${{ env.DIFY_PLUGIN_DAEMON_VERSION }}/dify-plugin-linux-amd64" -O dify-plugin
           chmod +x dify-plugin
 
       - name: Read plugin name and version from manifest

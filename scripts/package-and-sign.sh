@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Package this plugin and sign the .difypkg (local release / same flow as CI).
 #
-# 1) Download the CLI for your OS: https://github.com/langgenius/dify-plugin-daemon/releases
+# 1) Download the CLI for your OS (use a recent release, e.g. 0.5.x — old 0.0.6 has no `signature`):
+#    https://github.com/langgenius/dify-plugin-daemon/releases
 # 2) Generate keys once:  $DIFY_PLUGIN_CLI signature generate -f mykeys
 #
 # Usage:

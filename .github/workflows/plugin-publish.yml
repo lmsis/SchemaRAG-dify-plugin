@@ -40,6 +40,41 @@ jobs:
           echo "Plugin author: $AUTHOR"
           echo "author=$AUTHOR" >> $GITHUB_OUTPUT
 
+      - name: Resolve dify-plugins fork
+        id: fork
+        env:
+          DIFY_PLUGINS_FORK: ${{ secrets.DIFY_PLUGINS_FORK }}
+          MANIFEST_AUTHOR: ${{ steps.get_basic_info.outputs.author }}
+        run: |
+          if [ -n "$DIFY_PLUGINS_FORK" ]; then
+            REPO="$DIFY_PLUGINS_FORK"
+          else
+            REPO="${MANIFEST_AUTHOR}/dify-plugins"
+          fi
+          OWNER="${REPO%%/*}"
+          echo "fork_repo=$REPO" >> "$GITHUB_OUTPUT"
+          echo "fork_owner=$OWNER" >> "$GITHUB_OUTPUT"
+          echo "Fork for checkout/push: $REPO (PR head owner: $OWNER)"
+
+      - name: Verify fork exists
+        env:
+          REPO: ${{ steps.fork.outputs.fork_repo }}
+          GH_TOKEN: ${{ secrets.PLUGIN_ACTION || github.token }}
+        run: |
+          CODE=$(curl -sS -o /tmp/gh_repo.json -w "%{http_code}" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO")
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Fork not found or token cannot access: $REPO (HTTP $CODE)"
+            echo "Fork https://github.com/langgenius/dify-plugins — repo name must stay dify-plugins."
+            echo "If the fork is under another account, set secret DIFY_PLUGINS_FORK to owner/dify-plugins."
+            echo "See docs/PUBLISH_DIFY_PLUGINS.md"
+            head -c 500 /tmp/gh_repo.json 2>/dev/null || true
+            exit 1
+          fi
+          echo "OK: $REPO"
+
       - name: Package Plugin
         id: package
         run: |
@@ -59,7 +94,7 @@ jobs:
       - name: Checkout target repo
         uses: actions/checkout@v3
         with:
-          repository: ${{steps.get_basic_info.outputs.author}}/dify-plugins
+          repository: ${{ steps.fork.outputs.fork_repo }}
           path: dify-plugins
           token: ${{ secrets.PLUGIN_ACTION || github.token }}
           fetch-depth: 1
@@ -99,7 +134,7 @@ jobs:
         run: |
           gh pr create \
             --repo langgenius/dify-plugins \
-            --head "${{ steps.get_basic_info.outputs.author }}:bump-${{ steps.get_basic_info.outputs.plugin_name }}-plugin-${{ steps.get_basic_info.outputs.version }}" \
+            --head "${{ steps.fork.outputs.fork_owner }}:bump-${{ steps.get_basic_info.outputs.plugin_name }}-plugin-${{ steps.get_basic_info.outputs.version }}" \
             --base main \
             --title "bump ${{ steps.get_basic_info.outputs.plugin_name }} plugin to version ${{ steps.get_basic_info.outputs.version }}" \
             --body "bump ${{ steps.get_basic_info.outputs.plugin_name }} plugin package to version ${{ steps.get_basic_info.outputs.version }}

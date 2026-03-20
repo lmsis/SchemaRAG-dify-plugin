@@ -4,15 +4,15 @@
 
 | Item | Valor |
 |------|--------|
-| **Versão atual no repo** | `0.1.7` (`manifest.yaml`, `pyproject.toml`, `README.md`, `uv.lock`) |
-| **Próxima versão sugerida** | `0.1.8` — quando houver próximo conjunto de alterações |
+| **Versão atual no repo** | `0.2.0` — plugin id **`lmsis/lm_db_schema_rag`** (novo; não é `joto/schemarag`) |
+| **Próxima versão sugerida** | `0.2.1` ou `0.3.0` — conforme alterações |
 
 **Ao publicar, atualizar a versão em todos estes sítios:**
 
 1. **`manifest.yaml`** — campo `version:` (linha ~1) **e** `meta.version:` (linha ~38).
 2. **`pyproject.toml`** — `[project].version`.
 3. **`README.md`** — badge `version-0.1.x` na URL do shields.io **e** linha **Version:** no texto.
-4. **`UPDATE.md`** — secção de histórico de versões (já inclui `0.1.7`); repetir para releases futuros.
+4. **`UPDATE.md`** — histórico de versões (inclui `0.2.0` e notas de breaking).
 
 **Opcional (conforme o vosso fluxo):**
 
@@ -103,11 +103,11 @@ Nenhum. Parâmetros novos são opcionais.
 
 ### Título do Release (exemplo)
 
-`v0.1.7 — i18n (EN/pt-BR/zh), tool_messages, ui_language`
+`v0.2.0 — LM DB Schema RAG (lmsis/lm_db_schema_rag), breaking id rename`
 
 ### Tag Git (exemplo)
 
-`v0.1.7` ou `0.1.7` — *usar a mesma convenção dos releases anteriores do repositório.*
+`v0.2.0` ou `0.2.0` — *usar a mesma convenção dos releases anteriores do repositório.*
 
 ### Mensagem de commit (escolher uma)
 
@@ -127,7 +127,7 @@ chore(i18n): localize UI, add tool_messages.py and optional ui_language
 - [ ] Bumped **`pyproject.toml`** `version`.
 - [ ] Bumped **`README.md`** (badge + texto **Version:**).
 - [ ] Atualizado **`UPDATE.md`** (se aplicável).
-- [ ] Ajustado o número da versão no **título** do GitHub Release se não for `v0.1.7`.
+- [ ] Ajustado o número da versão no **título** do GitHub Release se não for `v0.2.0`.
 - [ ] `python3 -m compileall` ou `uv run` / testes num ambiente compatível (ex.: Linux se Dameng for obrigatório no lockfile).
 - [ ] Criada **tag** e **GitHub Release** com o bloco **English** (ou PT) no corpo.
 - [ ] Gerado / publicado **`.difypkg`** após o bump, se fizer parte do vosso pipeline.

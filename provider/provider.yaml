@@ -1,10 +1,10 @@
 identity:
-  author: joto
-  name: schemarag
+  author: lmsis
+  name: lm_db_schema_rag
   label:
-    en_US: Schema RAG
-    zh_Hans: Schema RAG
-    pt_BR: Schema RAG
+    en_US: LM DB Schema RAG
+    zh_Hans: LM DB Schema RAG
+    pt_BR: LM DB Schema RAG
   description:
     en_US: Automatically create database schema knowledge base to build RAGs. Nodes containing natural language to SQL functionality based on schemaRAG
     zh_Hans: 自动创建数据库 schema 知识库以构建 RAG。包含基于 schemaRAG 的自然语言转 SQL 功能的节点。
@@ -177,5 +177,5 @@ tools:
   - tools/llm_plot.yaml
 extra:
   python:
-    source: provider/build_schema_rag.py
-    provider: SchemaRAGBuilderProvider
+    source: provider/build_lm_db_schema_rag.py
+    provider: LmDbSchemaRagProvider

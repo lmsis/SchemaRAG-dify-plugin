@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-End-to-end SchemaRAG build flow test (mocked Dify upload).
+End-to-end LM DB Schema RAG build flow test (mocked Dify upload).
 """
 
 import sys
@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from unittest.mock import patch
-from provider.build_schema_rag import SchemaRAGBuilderProvider
+from provider.build_lm_db_schema_rag import LmDbSchemaRagProvider
 import logging
 
 # Reduce log noise
@@ -30,7 +30,7 @@ def mock_dify_upload(dataset_name, schema_content):
 
 
 def test_schema_rag_build_process():
-    """Run full SchemaRAG build with mocked upload."""
+    """Run full LM DB Schema RAG build with mocked upload."""
 
     try:
         test_credentials = {
@@ -44,26 +44,26 @@ def test_schema_rag_build_process():
             "db_name": "test",
         }
 
-        print("SchemaRAG build test:")
+        print("LM DB Schema RAG build test:")
         print("=" * 80)
 
-        provider = SchemaRAGBuilderProvider()
+        provider = LmDbSchemaRagProvider()
 
         with patch(
-            "service.schema_builder.SchemaRAGBuilder.upload_text_to_dify",
+            "service.schema_builder.LmDbSchemaRagBuilder.upload_text_to_dify",
             side_effect=mock_dify_upload,
         ):
             with patch(
-                "service.schema_builder.SchemaRAGBuilder.close", return_value=None
+                "service.schema_builder.LmDbSchemaRagBuilder.close", return_value=None
             ):
-                print("🚀 Starting Schema RAG build...")
+                print("🚀 Starting LM DB Schema RAG build...")
 
                 try:
-                    provider._build_schema_rag(test_credentials)
-                    print("✅ Schema RAG build succeeded!")
+                    provider._build_lm_db_schema_rag(test_credentials)
+                    print("✅ LM DB Schema RAG build succeeded!")
 
                 except Exception as e:
-                    print(f"❌ Schema RAG build failed: {e}")
+                    print(f"❌ LM DB Schema RAG build failed: {e}")
                     raise
 
         print("=" * 80)
@@ -76,11 +76,11 @@ def test_schema_rag_build_process():
 
 
 if __name__ == "__main__":
-    print("🚀 Full SchemaRAG build test")
+    print("🚀 Full LM DB Schema RAG build test")
     print("=" * 80)
 
     try:
-        print("1️⃣ Full Schema RAG build (mocked)")
+        print("1️⃣ Full LM DB Schema RAG build (mocked)")
         test_schema_rag_build_process()
 
         print("\n🎉 All steps finished!")

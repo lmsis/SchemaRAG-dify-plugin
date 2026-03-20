@@ -1,4 +1,4 @@
-# Builds schemarag-{version}.difypkg and uploads it to THIS repo's GitHub Release.
+# Builds lm_db_schema_rag-{version}.difypkg and uploads it to THIS repo's GitHub Release.
 # Dify "Install from GitHub" only lists .difypkg assets on the release — without this step the package dropdown stays empty.
 name: Attach difypkg to release
 

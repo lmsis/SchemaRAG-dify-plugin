@@ -1,6 +1,6 @@
 # Tradução (EN / pt-BR) — Pontos de atenção
 
-Este documento resume o que foi alterado na internacionalização do plugin SchemaRAG para Dify e onde ainda existe texto não inglês **de propósito**.
+Este documento resume o que foi alterado na internacionalização do plugin **LM DB Schema RAG** (`lmsis/lm_db_schema_rag`) para Dify e onde ainda existe texto não inglês **de propósito**.
 
 ## O que foi padronizado
 

@@ -1,12 +1,12 @@
-# SchemaRAG Database Schema RAG Plugin
+# LM DB Schema RAG Plugin
 
-[![Version](https://img.shields.io/badge/version-0.1.7-blue.svg)](https://github.com/weijunjiang123/schemarag)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/lmsis/SchemaRAG-dify-plugin)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
 
-**Author:** joto  
-**Version:** 0.1.7  
+**Author:** lmsis  
+**Version:** 0.2.0  
 **Type:** tool  
-**Repository:** <https://github.com/JOTO-AI/SchemaRAG-dify-plugin>
+**Repository:** <https://github.com/lmsis/SchemaRAG-dify-plugin>
 
 > **Note:** This file keeps the historical name `README_CN.md` and is maintained in **English**. The canonical copy is [README.md](./README.md).
 
@@ -16,9 +16,9 @@
 
 ## Overview
 
-SchemaRAG is a database schema RAG plugin designed specifically for the Dify platform. It can automatically analyze database structures, build knowledge bases, and implement natural language to SQL queries. This plugin provides a complete database schema analysis and intelligent query solution, ready to use out of the box.
+**LM DB Schema RAG** is a database schema RAG plugin for the Dify platform (package id `lmsis/lm_db_schema_rag`). It can automatically analyze database structures, build knowledge bases, and implement natural language to SQL queries. This plugin provides a complete database schema analysis and intelligent query solution, ready to use out of the box.
 
-Example workflow [download](https://github.com/JOTO-AI/SchemaRAG-dify-plugin/blob/main/demo/text2sql-workflow.yml)
+Example workflow [download](https://github.com/lmsis/SchemaRAG-dify-plugin/blob/main/demo/text2sql-workflow.yml)
 
 ---
 
@@ -84,19 +84,22 @@ uv run main.py
 ### Method 3: Code Invocation
 
 ```python
-from provider.build_schema_rag import BuildSchemaRAG
+from service.schema_builder import LmDbSchemaRagBuilder
+from config import DatabaseConfig, LoggerConfig, DifyUploadConfig
 
-builder = BuildSchemaRAG(
-    dataset_api_key="your-key",
-    db_type="MySQL",
-    db_host="localhost",
-    db_port=3306,
-    db_user="root",
-    db_password="password",
-    db_name="your_db"
+db_config = DatabaseConfig(
+    type="mysql", host="localhost", port=3306,
+    user="root", password="password", database="your_db",
 )
-result = builder.toschema()
-print(result)
+logger_config = LoggerConfig(log_level="INFO")
+dify_config = DifyUploadConfig(
+    api_key="your-dataset-api-key",
+    base_url="https://your-dify.example/v1",
+)
+builder = LmDbSchemaRagBuilder(db_config, logger_config, dify_config)
+dictionary = builder.generate_dictionary()
+print(dictionary[:500], "...")
+builder.close()
 ```
 
 ---
@@ -304,8 +307,8 @@ A: You can specify specific analysis requirements, focus points, or constraints 
 
 ## 📞 Contact
 
-- **Developer**: [Dylan Jiang](https://github.com/weijunjiang123)
-- **Email**: <weijun.jiang@jototech.cn>
+- **Organization / fork**: [lmsis](https://github.com/lmsis) — [SchemaRAG-dify-plugin](https://github.com/lmsis/SchemaRAG-dify-plugin)
+- **Upstream reference**: original SchemaRAG work by [Dylan Jiang](https://github.com/weijunjiang123) (JOTO-AI)
 
 ---
 

@@ -1,6 +1,6 @@
 identity:
   name: llm_plot
-  author: joto
+  author: lmsis
   label:
     zh_Hans: 智能绘图工具
     en_US: Intelligent Plotting Tool

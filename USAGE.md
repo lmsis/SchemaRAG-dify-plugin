@@ -1,4 +1,4 @@
-# SchemaRAG Plugin Usage
+# LM DB Schema RAG Plugin Usage
 
 A Dify plugin for building database schema RAG: it analyzes database structure and uploads it to a Dify knowledge base.
 

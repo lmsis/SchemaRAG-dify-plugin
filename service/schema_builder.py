@@ -20,7 +20,7 @@ from service.dify_service import DifyUploader
 from utils import Logger, read_json
 
 
-class SchemaRAGBuilder:
+class LmDbSchemaRagBuilder:
     """
     Orchestrates data dictionary generation and upload.
     Initialize with db_config, logger_config, dify_config objects, or use from_config_file.
@@ -88,9 +88,9 @@ class SchemaRAGBuilder:
         db_config_path: str,
         logger_config_path: str,
         dify_config_path: Optional[str] = None,
-    ) -> "SchemaRAGBuilder":
+    ) -> "LmDbSchemaRagBuilder":
         """
-        Factory: build SchemaRAGBuilder from JSON config file paths.
+        Factory: build LmDbSchemaRagBuilder from JSON config file paths.
         """
         db_config = read_json(db_config_path)
         logger_config = read_json(logger_config_path)
@@ -99,7 +99,7 @@ class SchemaRAGBuilder:
         db_config_obj = DatabaseConfig(**db_config)
         logger_config_obj = LoggerConfig(**logger_config)
         dify_config_obj = DifyUploadConfig(**dify_config) if dify_config else None
-        return SchemaRAGBuilder(db_config_obj, logger_config_obj, dify_config_obj)
+        return LmDbSchemaRagBuilder(db_config_obj, logger_config_obj, dify_config_obj)
 
     def _initialize_components(self):
         """Initialize schema engine and optional Dify uploader."""

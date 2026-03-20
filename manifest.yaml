@@ -1,17 +1,17 @@
-version: 0.1.7
+version: 0.2.0
 type: plugin
-author: joto
-name: schemarag
+author: lmsis
+name: lm_db_schema_rag
 label:
-  en_US: DB Schema RAG
-  ja_JP: DB Schema RAG
-  zh_Hans: DB Schema RAG
-  pt_BR: DB Schema RAG
+  en_US: LM DB Schema RAG
+  ja_JP: LM DB Schema RAG
+  zh_Hans: LM DB Schema RAG
+  pt_BR: LM DB Schema RAG
 description:
-  en_US: Automatically create database schema knowledge base to build RAGs. Nodes containing natural language to SQL functionality based on schemaRAG
-  ja_JP: データベーススキーマ知識ベースを自動作成し、RAGを構築します。schemaRAGに基づく自然言語からSQLへの変換機能ノードを含みます。
-  zh_Hans: 自动创建数据库 schema 知识库以构建 RAG。包含基于 schemaRAG 的自然语言转 SQL 功能的节点。
-  pt_BR: Cria automaticamente uma base de conhecimento do esquema do banco para RAG. Inclui nós de linguagem natural para SQL com base no schemaRAG.
+  en_US: Automatically create database schema knowledge base to build RAGs. Nodes containing natural language to SQL functionality based on LM DB Schema RAG
+  ja_JP: データベーススキーマ知識ベースを自動作成し、RAGを構築します。LM DB Schema RAG に基づく自然言語からSQLへの変換機能ノードを含みます。
+  zh_Hans: 自动创建数据库 schema 知识库以构建 RAG。包含基于 LM DB Schema RAG 的自然语言转 SQL 功能的节点。
+  pt_BR: Cria automaticamente uma base de conhecimento do esquema do banco para RAG. Inclui nós de linguagem natural para SQL com base no LM DB Schema RAG.
 icon: logo.jpg
 resource:
   memory: 268435456
@@ -35,7 +35,7 @@ plugins:
   tools:
     - provider/provider.yaml
 meta:
-  version: 0.1.7
+  version: 0.2.0
   arch:
     - amd64
     - arm64

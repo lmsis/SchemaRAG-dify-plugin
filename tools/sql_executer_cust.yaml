@@ -1,6 +1,6 @@
 identity:
   name: sql_executer_customize
-  author: joto
+  author: lmsis
   label:
     en_US: Custom SQL executor
     zh_Hans: SQL执行器(自定义)

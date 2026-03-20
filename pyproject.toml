@@ -1,7 +1,7 @@
 [project]
-name = "SchemaRAG"
-version = "0.1.7"
-description = "Build database schema for RAG in Dify dataset"
+name = "lm-db-schema-rag"
+version = "0.2.0"
+description = "LM DB Schema RAG — database schema for RAG in Dify dataset"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

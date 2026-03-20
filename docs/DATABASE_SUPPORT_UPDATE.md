@@ -2,7 +2,7 @@
 
 ## Summary
 
-SchemaRAG now supports more database engines beyond the original MySQL and PostgreSQL focus (see provider and engine code for the exact current list).
+LM DB Schema RAG now supports more database engines beyond the original MySQL and PostgreSQL focus (see provider and engine code for the exact current list).
 
 ## Supported types (reference)
 
@@ -21,7 +21,7 @@ SchemaRAG now supports more database engines beyond the original MySQL and Postg
 - Default port hints in UI copy  
 - SQLite-specific notes (no host/port/user/password required)  
 
-### `provider/build_schema_rag.py`
+### `provider/build_lm_db_schema_rag.py`
 - `_get_default_port()` (or equivalent) maps engine → default port  
 - Credential validation: SQLite uses file path; others need full connection fields  
 - Config builder picks sensible defaults per engine  

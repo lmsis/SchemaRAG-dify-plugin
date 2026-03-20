@@ -1,5 +1,5 @@
 """
-Schema RAG Builder Tools Module
+LM DB Schema RAG — tools package.
 """
 
 from .text2sql import Text2SQLTool

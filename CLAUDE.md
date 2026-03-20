@@ -1,14 +1,14 @@
-# CLAUDE.md - AI Assistant Guide for SchemaRAG Dify Plugin
+# CLAUDE.md - AI Assistant Guide for LM DB Schema RAG Dify Plugin
 
 ## Project Overview
 
-SchemaRAG is a **Dify plugin** that automates database schema analysis and enables natural language to SQL query conversion. It provides intelligent database querying capabilities for the Dify platform.
+**LM DB Schema RAG** is a **Dify plugin** (`lmsis/lm_db_schema_rag`, PyPI-style name `lm-db-schema-rag`) that automates database schema analysis and enables natural language to SQL query conversion.
 
 - **Type:** Tool Provider Plugin for Dify
-- **Version:** 0.1.7
+- **Version:** 0.2.0
 - **Language:** Python 3.12+
 - **License:** Apache-2.0
-- **Author:** joto (JOTO-AI)
+- **Author:** lmsis
 
 ### Core Functionality
 - Multi-database schema extraction and indexing
@@ -38,7 +38,7 @@ SchemaRAG-dify-plugin/
 │   ├── database_service.py     # SQLAlchemy database operations
 │   ├── dify_service.py         # Dify API integration
 │   ├── knowledge_service.py    # Knowledge base retrieval
-│   ├── schema_builder.py       # Schema generation & upload
+│   ├── schema_builder.py       # LmDbSchemaRagBuilder — schema generation & upload
 │   ├── sql_refiner.py          # SQL auto-correction service
 │   └── network_service.py      # Network operations
 ├── tools/                      # Dify tool implementations
@@ -51,7 +51,7 @@ SchemaRAG-dify-plugin/
 │   ├── parameter_validator.py  # Input validation
 │   └── *.yaml                  # Tool configurations
 ├── provider/                   # Plugin provider
-│   ├── build_schema_rag.py     # Provider implementation
+│   ├── build_lm_db_schema_rag.py  # LmDbSchemaRagProvider
 │   └── provider.yaml           # Provider configuration
 ├── prompt/                     # Prompt templates
 │   └── components/             # Modular prompt components
@@ -229,7 +229,7 @@ class MyTool(Tool):
 ```yaml
 identity:
   name: my_tool
-  author: joto
+  author: lmsis
   label:
     en_US: My Tool
     zh_Hans: 我的工具
@@ -306,6 +306,7 @@ test: <description>
 
 ### Examples from History
 ```
+feat: release 0.2.0 — lmsis/lm_db_schema_rag, LmDbSchemaRagProvider
 feat: bump version to 0.1.7; i18n, tool_messages, ui_language
 feat: bump version to 0.1.6; polish docs and metadata
 feat: improve SQL executors and tools; refactor caching; tighten SQL cleanup/validation

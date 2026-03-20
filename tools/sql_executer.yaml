@@ -1,6 +1,6 @@
 identity:
   name: sql_executer
-  author: joto
+  author: lmsis
   label:
     en_US: SQL Executor
     zh_Hans: SQL 执行器

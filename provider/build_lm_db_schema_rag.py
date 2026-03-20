@@ -2,8 +2,6 @@ import os
 from typing import Any
 import sys
 import logging
-from venv import logger
-
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -13,13 +11,13 @@ from dify_plugin import ToolProvider
 from tools.text2sql import Text2SQLTool
 from tools.sql_executer import SQLExecuterTool
 from config import DatabaseConfig, LoggerConfig, DifyUploadConfig
-from service.schema_builder import SchemaRAGBuilder
+from service.schema_builder import LmDbSchemaRagBuilder
 from dify_plugin.config.logger_format import plugin_logger_handler
 
 
-class SchemaRAGBuilderProvider(ToolProvider):
+class LmDbSchemaRagProvider(ToolProvider):
     """
-    Schema RAG Builder Provider
+    LM DB Schema RAG — tool provider (credentials validation + schema KB build).
     """
 
     def _get_default_port(self, db_type: str) -> int:
@@ -36,9 +34,8 @@ class SchemaRAGBuilderProvider(ToolProvider):
 
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         """
-        Validate the credentials and build schema RAG
+        Validate the credentials and build schema knowledge base for RAG.
         """
-        # Required credentials
         api_uri = credentials.get("api_uri")
         dataset_api_key = credentials.get("dataset_api_key")
         db_type = credentials.get("db_type")
@@ -46,25 +43,20 @@ class SchemaRAGBuilderProvider(ToolProvider):
         db_user = credentials.get("db_user")
         db_password = credentials.get("db_password")
         db_name = credentials.get("db_name")
-        # build_rag = credentials.get("build_rag", True)
 
-        # API parameters
         if not api_uri:
             raise ValueError("API URI is required")
 
         if not dataset_api_key:
             raise ValueError("Dataset API key is required")
 
-        # Database parameters
         if not db_type:
             raise ValueError("Database type is required")
 
-        # SQLite: only database path/name
         if db_type == "sqlite":
             if not db_name:
                 raise ValueError("Database name (file path) is required for SQLite")
         elif db_type == "doris":
-            # Doris: host, port, user, password, database
             if not db_host:
                 raise ValueError("Doris database host is required")
             if not db_user:
@@ -74,7 +66,6 @@ class SchemaRAGBuilderProvider(ToolProvider):
             if not db_name:
                 raise ValueError("Doris database name is required")
         else:
-            # Other drivers: full connection fields
             if not db_host:
                 raise ValueError("Database host is required")
 
@@ -87,22 +78,15 @@ class SchemaRAGBuilderProvider(ToolProvider):
             if not db_name:
                 raise ValueError("Database name is required")
 
-        self._build_schema_rag(credentials)
-        # After validation, always build (build_rag toggle may be re-enabled later)
-        # if build_rag:
-        #     self._build_schema_rag(credentials)
-        # else:
-        #     logging.info("build_rag is False; skipping Schema RAG build")
+        self._build_lm_db_schema_rag(credentials)
 
-    def _build_schema_rag(self, credentials: dict[str, Any]) -> None:
+    def _build_lm_db_schema_rag(self, credentials: dict[str, Any]) -> None:
         """
-        Build schema RAG using the provided credentials
+        Build schema RAG knowledge base using the provided credentials.
         """
         try:
 
-            # Database config
             db_type = credentials.get("db_type")
-
 
             if db_type == "doris":
                 db_config = DatabaseConfig(
@@ -123,15 +107,13 @@ class SchemaRAGBuilderProvider(ToolProvider):
                     database=credentials.get("db_name"),
                 )
 
-            # Logging
             logger_config = LoggerConfig(
                 log_level="INFO"
             )
-            logger = logging.getLogger(__name__)
-            logger.setLevel(logging.INFO)
-            logger.addHandler(plugin_logger_handler)
-            
-            # Dify upload settings
+            log = logging.getLogger(__name__)
+            log.setLevel(logging.INFO)
+            log.addHandler(plugin_logger_handler)
+
             dify_config = DifyUploadConfig(
                 api_key=credentials.get("dataset_api_key"),
                 base_url=credentials.get("api_uri"),
@@ -141,7 +123,6 @@ class SchemaRAGBuilderProvider(ToolProvider):
                 max_tokens=4000,
             )
 
-            # Optional table filter
             tables_name = credentials.get("tables_name", "")
             include_tables = None
             if tables_name and tables_name.strip():
@@ -150,8 +131,7 @@ class SchemaRAGBuilderProvider(ToolProvider):
             else:
                 logging.info("Building RAG for all tables")
 
-            # Builder
-            builder = SchemaRAGBuilder(db_config, logger_config, dify_config, include_tables)
+            builder = LmDbSchemaRagBuilder(db_config, logger_config, dify_config, include_tables)
 
             try:
                 schema_content = builder.generate_dictionary()
@@ -164,8 +144,8 @@ class SchemaRAGBuilderProvider(ToolProvider):
                 logging.info("Uploaded to Dify knowledge base")
 
             except Exception as e:
-                logging.error(f"Schema RAG build failed: {e}")
-                raise ValueError(f"Schema RAG build failed: {str(e)}")
+                logging.error(f"LM DB Schema RAG build failed: {e}")
+                raise ValueError(f"LM DB Schema RAG build failed: {str(e)}")
             finally:
                 builder.close()
 
@@ -174,7 +154,5 @@ class SchemaRAGBuilderProvider(ToolProvider):
             raise ValueError(f"Credential validation or build error: {str(e)}")
 
     def get_tools(self):
-        """
-        Return available tools
-        """
+        """Return available tools."""
         return [Text2SQLTool, SQLExecuterTool]

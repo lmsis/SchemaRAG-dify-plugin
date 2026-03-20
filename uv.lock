@@ -976,8 +976,8 @@ wheels = [
 ]
 
 [[package]]
-name = "schemarag"
-version = "0.1.7"
+name = "lm-db-schema-rag"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "dify-client" },

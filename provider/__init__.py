@@ -1,8 +1,7 @@
 """
-Schema RAG Builder Tools Module
+LM DB Schema RAG — provider package.
 """
 
-from provider.build_schema_rag import SchemaRAGBuilderProvider
+from provider.build_lm_db_schema_rag import LmDbSchemaRagProvider
 
-
-__all__ = ["SchemaRAGBuilderProvider"]
+__all__ = ["LmDbSchemaRagProvider"]

@@ -1,8 +1,14 @@
 # Dynamic configuration and multi–knowledge-base support
 
-This document describes dynamic configuration and multi–knowledge-base features in SchemaRAG-dify-plugin.
+This document describes dynamic configuration and multi–knowledge-base features in **LM DB Schema RAG** (`lm-db-schema-rag`).
 
 ## Version history
+
+### 0.2.0 (new plugin identity)
+
+- **Breaking:** New Dify plugin id **`lmsis/lm_db_schema_rag`** (was `joto/schemarag`). Re-install the plugin; existing workflows must re-bind tool nodes.
+- **Renames:** `SchemaRAGBuilder` → `LmDbSchemaRagBuilder`; provider `LmDbSchemaRagProvider` in `provider/build_lm_db_schema_rag.py`.
+- **Author:** `lmsis` in `manifest.yaml`, `provider.yaml`, and all tool YAMLs.
 
 ### 0.1.7
 

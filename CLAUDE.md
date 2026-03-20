@@ -5,7 +5,7 @@
 **LM DB Schema RAG** is a **Dify plugin** (`lmsis/lm_db_schema_rag`, PyPI-style name `lm-db-schema-rag`) that automates database schema analysis and enables natural language to SQL query conversion.
 
 - **Type:** Tool Provider Plugin for Dify
-- **Version:** 0.2.2
+- **Version:** 0.2.3
 - **Language:** Python 3.12+
 - **License:** Apache-2.0
 - **Author:** lmsis

@@ -4,6 +4,11 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 0.2.3
+
+- **CI:** Workflows that opened PRs to `langgenius/dify-plugins` are **disabled** (`publish.yml`, `plugin-publish.yml`: commented automatic triggers + `if: false`). Distribution via **GitHub Release + `.difypkg`** only (`release-attach-difypkg.yml` unchanged).
+- **CI (earlier in branch):** fork resolution secret `DIFY_PLUGINS_FORK`, verify step, `PLUGIN_ACTION || github.token` for checkout; docs `docs/PUBLISH_DIFY_PLUGINS.md`.
+
 ### 0.2.2
 
 - **Fix:** `tools/sql_executer_cust.yaml` — quoted `human_description` strings so YAML parsers accept colons in URLs and in `ex.: …` (pt_BR). Same for `tools/llm_plot.yaml` pt_BR. Unblocks `dify-plugin package` / publish workflow.

@@ -1,10 +1,10 @@
 # LM DB Schema RAG Plugin
 
-[![Version](https://img.shields.io/badge/version-0.2.2-blue.svg)](https://github.com/lmsis/SchemaRAG-dify-plugin)
+[![Version](https://img.shields.io/badge/version-0.2.3-blue.svg)](https://github.com/lmsis/SchemaRAG-dify-plugin)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
 
 **Author:** lmsis  
-**Version:** 0.2.2  
+**Version:** 0.2.3  
 **Type:** tool  
 **Repository:** <https://github.com/lmsis/SchemaRAG-dify-plugin>
 

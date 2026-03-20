@@ -1,4 +1,4 @@
-version: 0.2.1
+version: 0.2.2
 type: plugin
 author: lmsis
 name: lm_db_schema_rag
@@ -35,7 +35,7 @@ plugins:
   tools:
     - provider/provider.yaml
 meta:
-  version: 0.2.1
+  version: 0.2.2
   arch:
     - amd64
     - arm64

@@ -22,7 +22,7 @@ parameters:
     human_description:
       zh_Hans: 描述您想要可视化的内容，例如显示销售趋势变化
       en_US: Describe what you want to visualize, e.g. Show sales trend changes
-      pt_BR: Descreva o que deseja visualizar (ex.: tendência de vendas no tempo).
+      pt_BR: "Descreva o que deseja visualizar (ex.: tendência de vendas no tempo)."
     llm_description: The user's natural language description of what they want to visualize
     form: llm
   

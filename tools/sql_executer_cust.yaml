@@ -22,9 +22,9 @@ parameters:
       zh_Hans: 数据库URL
       pt_BR: URL do banco
     human_description:
-      en_US: The database connection URL example:mysql://user:password@host:port/dbname db_type can be:postgresql, dameng, mssql, oracle.
-      zh_Hans: 数据库连接URL 例如：mysql://user:password@host:port/dbname db_type 可为：postgresql，dameng，mssql，oracle。
-      pt_BR: URL de conexão (ex.: mysql://usuario:senha@host:porta/nome_db). Tipos suportados incluem postgresql, dameng, mssql, oracle.
+      en_US: "The database connection URL example:mysql://user:password@host:port/dbname db_type can be:postgresql, dameng, mssql, oracle."
+      zh_Hans: "数据库连接URL 例如：mysql://user:password@host:port/dbname db_type 可为：postgresql，dameng，mssql，oracle。"
+      pt_BR: "URL de conexão (ex.: mysql://usuario:senha@host:porta/nome_db). Tipos suportados incluem postgresql, dameng, mssql, oracle."
     llm_description: The connection URL for the database to execute queries against.
     form: llm
 

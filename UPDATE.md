@@ -4,6 +4,10 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 0.2.2
+
+- **Fix:** `tools/sql_executer_cust.yaml` — quoted `human_description` strings so YAML parsers accept colons in URLs and in `ex.: …` (pt_BR). Same for `tools/llm_plot.yaml` pt_BR. Unblocks `dify-plugin package` / publish workflow.
+
 ### 0.2.1
 
 - **Docs:** README / README_CN — **Acknowledgments** section: states the project is based on the original [SchemaRAG](https://github.com/JOTO-AI/SchemaRAG-dify-plugin) (JOTO-AI, Dylan Jiang); upstream link in Contact.

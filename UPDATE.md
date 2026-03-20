@@ -4,6 +4,10 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 0.2.1
+
+- **Docs:** README / README_CN — **Acknowledgments** section: states the project is based on the original [SchemaRAG](https://github.com/JOTO-AI/SchemaRAG-dify-plugin) (JOTO-AI, Dylan Jiang); upstream link in Contact.
+
 ### 0.2.0 (new plugin identity)
 
 - **Breaking:** New Dify plugin id **`lmsis/lm_db_schema_rag`** (was `joto/schemarag`). Re-install the plugin; existing workflows must re-bind tool nodes.

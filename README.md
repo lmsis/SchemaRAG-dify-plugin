@@ -1,10 +1,10 @@
 # LM DB Schema RAG Plugin
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/lmsis/SchemaRAG-dify-plugin)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/lmsis/SchemaRAG-dify-plugin)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
 
 **Author:** lmsis  
-**Version:** 0.2.0  
+**Version:** 0.2.1  
 **Type:** tool  
 **Repository:** <https://github.com/lmsis/SchemaRAG-dify-plugin>
 
@@ -19,6 +19,12 @@
 **LM DB Schema RAG** is a database schema RAG plugin for the Dify platform (package id `lmsis/lm_db_schema_rag`). It can automatically analyze database structures, build knowledge bases, and implement natural language to SQL queries. This plugin provides a complete database schema analysis and intelligent query solution, ready to use out of the box.
 
 Example workflow [download](https://github.com/lmsis/SchemaRAG-dify-plugin/blob/main/demo/text2sql-workflow.yml) — re-bind plugin nodes in Dify after install (IDs change from fork).
+
+## Acknowledgments
+
+**English:** **LM DB Schema RAG** is based on the original open-source **[SchemaRAG](https://github.com/JOTO-AI/SchemaRAG-dify-plugin)** (*DB Schema RAG*) Dify plugin by **[JOTO-AI](https://github.com/JOTO-AI)** and **[Dylan Jiang](https://github.com/weijunjiang123)**. Thank you for publishing the project under a permissive license and for the work that made schema RAG on Dify possible — this fork builds on that foundation.
+
+**Português:** Este plugin (**LM DB Schema RAG**) é **baseado no projeto original** **[SchemaRAG](https://github.com/JOTO-AI/SchemaRAG-dify-plugin)** (*DB Schema RAG*) para Dify, desenvolvido pela **[JOTO-AI](https://github.com/JOTO-AI)** e **[Dylan Jiang](https://github.com/weijunjiang123)**. **O nosso obrigado** pela partilha em open source e pelo esforço que tornou viável o RAG de esquemas no Dify — este trabalho parte dessa base.
 
 ---
 
@@ -308,7 +314,7 @@ A: You can specify specific analysis requirements, focus points, or constraints 
 ## 📞 Contact
 
 - **Organization / fork**: [lmsis](https://github.com/lmsis) — [SchemaRAG-dify-plugin](https://github.com/lmsis/SchemaRAG-dify-plugin)
-- **Upstream reference**: original SchemaRAG work by [Dylan Jiang](https://github.com/weijunjiang123) (JOTO-AI)
+- **Upstream (original project)**: [JOTO-AI / SchemaRAG-dify-plugin](https://github.com/JOTO-AI/SchemaRAG-dify-plugin) — see [Acknowledgments](#acknowledgments) above.
 
 ---
 

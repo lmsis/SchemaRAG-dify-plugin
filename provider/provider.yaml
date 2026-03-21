@@ -165,6 +165,19 @@ credentials_for_provider:
       zh_Hans: 数据表名称(可选, 多个表名用逗号分隔)
       pt_BR: Nomes das tabelas (opcional; várias separadas por vírgula)
 
+  kb_build_in_background:
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Build schema KB in background
+      zh_Hans: 后台构建知识库 schema
+      pt_BR: Construir KB do schema em segundo plano
+    help:
+      en_US: If enabled, only the database connection is checked now; schema extraction and Dify upload run in a background thread. Save returns immediately — monitor plugin daemon logs for completion or errors (thread may stop if the plugin process exits).
+      zh_Hans: 启用后仅立即校验数据库连接；schema 抽取与上传到 Dify 在后台线程执行。保存会马上成功——请在插件守护进程日志中查看完成或失败（若插件进程退出，线程可能中止）。
+      pt_BR: Se ativo, só valida a ligação à BD agora; a extração do schema e o upload para o Dify correm em thread em segundo plano. O guardar devolve logo OK — acompanhe os logs do plugin-daemon para conclusão ou falhas (o processo pode encerrar a thread).
+
 supported_app_types:
   - workflow
   - chatbot

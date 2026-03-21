@@ -1,6 +1,8 @@
+import copy
 import logging
 import os
 import sys
+import threading
 import time
 from typing import Any
 
@@ -9,11 +11,45 @@ sys.path.append(
 )  # add parent directory to path
 
 from dify_plugin import ToolProvider
-from tools.text2sql import Text2SQLTool
-from tools.sql_executer import SQLExecuterTool
-from config import DatabaseConfig, LoggerConfig, DifyUploadConfig
-from service.schema_builder import LmDbSchemaRagBuilder
 from dify_plugin.config.logger_format import plugin_logger_handler
+
+from config import DatabaseConfig, DifyUploadConfig, LoggerConfig
+from service.schema_builder import LmDbSchemaRagBuilder, ping_database_connection
+from tools.sql_executer import SQLExecuterTool
+from tools.text2sql import Text2SQLTool
+
+
+def _truthy_credential_flag(raw: Any) -> bool:
+    if raw is True:
+        return True
+    if raw is False or raw is None:
+        return False
+    if isinstance(raw, str):
+        return raw.strip().lower() in ("1", "true", "yes", "on")
+    return bool(raw)
+
+
+def _background_kb_build(credentials: dict[str, Any]) -> None:
+    """Runs full schema + Dify upload; must never raise to the HTTP layer."""
+    log = logging.getLogger(f"{__name__}.background_kb")
+    log.setLevel(logging.INFO)
+    if not log.handlers:
+        log.addHandler(plugin_logger_handler)
+
+    log.info(
+        "[provider] phase=background_kb_thread_started db=%r thread=%s",
+        credentials.get("db_name"),
+        threading.current_thread().name,
+    )
+    try:
+        provider = LmDbSchemaRagProvider()
+        provider._build_lm_db_schema_rag(credentials)
+    except Exception:
+        log.error(
+            "[provider] phase=background_kb_thread_failed db=%r",
+            credentials.get("db_name"),
+            exc_info=True,
+        )
 
 
 class LmDbSchemaRagProvider(ToolProvider):
@@ -32,6 +68,19 @@ class LmDbSchemaRagProvider(ToolProvider):
             "doris": 9030,
         }
         return port_mapping.get(db_type, 3306)
+
+    def _database_config_from_credentials(
+        self, credentials: dict[str, Any]
+    ) -> DatabaseConfig:
+        db_type = credentials.get("db_type")
+        return DatabaseConfig(
+            type=db_type,
+            host=credentials.get("db_host"),
+            port=credentials.get("db_port"),
+            user=credentials.get("db_user"),
+            password=credentials.get("db_password"),
+            database=credentials.get("db_name"),
+        )
 
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         """
@@ -79,6 +128,44 @@ class LmDbSchemaRagProvider(ToolProvider):
             if not db_name:
                 raise ValueError("Database name is required")
 
+        log = logging.getLogger(__name__)
+        log.setLevel(logging.INFO)
+        if not log.handlers:
+            log.addHandler(plugin_logger_handler)
+
+        background = _truthy_credential_flag(credentials.get("kb_build_in_background"))
+
+        if background:
+            db_config = self._database_config_from_credentials(credentials)
+            try:
+                ping_database_connection(db_config)
+            except Exception as e:
+                log.error(
+                    "[provider] phase=quick_db_ping_failed db=%r error=%s",
+                    db_name,
+                    e,
+                    exc_info=True,
+                )
+                raise ValueError(
+                    f"[provider] phase=quick_db_ping database={db_name!r}: {e}"
+                ) from e
+
+            cred_copy = copy.deepcopy(credentials)
+            thread = threading.Thread(
+                target=_background_kb_build,
+                args=(cred_copy,),
+                name="lm-schema-kb-build",
+                daemon=True,
+            )
+            thread.start()
+            log.info(
+                "[provider] phase=kb_build_deferred db=%r — full schema+upload running "
+                "in background thread %s; validation returned OK",
+                db_name,
+                thread.name,
+            )
+            return
+
         self._build_lm_db_schema_rag(credentials)
 
     def _build_lm_db_schema_rag(self, credentials: dict[str, Any]) -> None:
@@ -89,31 +176,13 @@ class LmDbSchemaRagProvider(ToolProvider):
 
             db_type = credentials.get("db_type")
 
-            if db_type == "doris":
-                db_config = DatabaseConfig(
-                    type=db_type,
-                    host=credentials.get("db_host"),
-                    port=credentials.get("db_port"),
-                    user=credentials.get("db_user"),
-                    password=credentials.get("db_password"),
-                    database=credentials.get("db_name"),
-                )
-            else:
-                db_config = DatabaseConfig(
-                    type=db_type,
-                    host=credentials.get("db_host"),
-                    port=credentials.get("db_port"),
-                    user=credentials.get("db_user"),
-                    password=credentials.get("db_password"),
-                    database=credentials.get("db_name"),
-                )
+            db_config = self._database_config_from_credentials(credentials)
 
-            logger_config = LoggerConfig(
-                log_level="INFO"
-            )
+            logger_config = LoggerConfig(log_level="INFO")
             log = logging.getLogger(__name__)
             log.setLevel(logging.INFO)
-            log.addHandler(plugin_logger_handler)
+            if not log.handlers:
+                log.addHandler(plugin_logger_handler)
 
             dify_config = DifyUploadConfig(
                 api_key=credentials.get("dataset_api_key"),

@@ -5,7 +5,7 @@
 **LM DB Schema RAG** is a **Dify plugin** (`lmsis/lm_db_schema_rag`, PyPI-style name `lm-db-schema-rag`) that automates database schema analysis and enables natural language to SQL query conversion.
 
 - **Type:** Tool Provider Plugin for Dify
-- **Version:** 1.0.1
+- **Version:** 1.0.2
 - **Language:** Python 3.12+
 - **License:** Apache-2.0
 - **Author:** lmsis
@@ -418,3 +418,4 @@ Provider → Tool → Service → Database/API
 
 **Schema KB build slow or HTTP timeout on save:**
 - `main.py` uses `DIFY_PLUGIN_MAX_REQUEST_TIMEOUT` (default 14400 s). Logs show phases `[sql_database]`, `[schema_engine]`, `[kb_build]`, `[provider]` with elapsed time and ETA during `mschema` build.
+- Provider credential **`kb_build_in_background`**: only `SELECT 1` validates the DB, then the full KB build runs in a **daemon thread**; save returns immediately — errors appear in **plugin-daemon** logs (`[provider] phase=background_kb_thread_*`). Not guaranteed if the plugin process exits early.

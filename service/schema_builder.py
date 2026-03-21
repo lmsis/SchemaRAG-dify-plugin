@@ -7,8 +7,9 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )  # add parent directory to path
 
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
-from sqlalchemy import create_engine
+
 from core.m_schema.schema_engine import SchemaEngine
 
 # Try to import Dameng SQLAlchemy dialect; registers if available
@@ -19,6 +20,39 @@ except ImportError:
 from config import DatabaseConfig, DifyUploadConfig, LoggerConfig
 from service.dify_service import DifyUploader
 from utils import Logger, read_json
+
+
+def sqlalchemy_engine_kwargs(db_type: str) -> dict:
+    """SQLAlchemy engine kwargs by database type (shared: builder + quick ping)."""
+    engine_args: dict = {
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+        "echo": False,
+    }
+    if db_type == "mysql" or db_type == "doris":
+        engine_args["connect_args"] = {"charset": "utf8mb4"}
+    elif db_type == "mssql":
+        engine_args["connect_args"] = {"charset": "utf8"}
+    elif db_type == "oracle":
+        engine_args["connect_args"] = {"thick_mode": False}
+    elif db_type == "dameng":
+        engine_args["connect_args"] = {"encoding": "UTF-8"}
+    return engine_args
+
+
+def ping_database_connection(db_config: DatabaseConfig) -> None:
+    """
+    Open a connection and run SELECT 1 to verify credentials (fast path for provider validate).
+    """
+    engine = create_engine(
+        db_config.get_connection_string(),
+        **sqlalchemy_engine_kwargs(db_config.type),
+    )
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    finally:
+        engine.dispose()
 
 
 class LmDbSchemaRagBuilder:
@@ -55,34 +89,8 @@ class LmDbSchemaRagBuilder:
         self._initialize_components()
 
     def _get_engine_args(self) -> dict:
-        """
-        SQLAlchemy engine arguments for the configured database type.
-
-        Returns:
-            Dict of engine kwargs
-        """
-        engine_args = {
-            "pool_pre_ping": True,
-            "pool_recycle": 3600,
-            "echo": False,
-        }
-
-        db_type = self.db_config.type
-
-        if db_type == "mysql" or db_type == "doris":
-            engine_args["connect_args"] = {"charset": "utf8mb4"}
-        elif db_type == "mssql":
-            # SQL Server (pymssql): use lowercase utf8 charset
-            engine_args["connect_args"] = {"charset": "utf8"}
-        elif db_type == "oracle":
-            engine_args["connect_args"] = {"thick_mode": False}
-        elif db_type == "dameng":
-            engine_args["connect_args"] = {"encoding": "UTF-8"}
-        elif db_type == "postgresql":
-            # PostgreSQL (psycopg2): UTF-8 by default
-            pass
-
-        return engine_args
+        """SQLAlchemy engine arguments for the configured database type."""
+        return sqlalchemy_engine_kwargs(self.db_config.type)
 
     @staticmethod
     def from_config_file(

@@ -405,7 +405,7 @@ wheels = [
 
 [[package]]
 name = "lm-db-schema-rag"
-version = "1.0.1"
+version = "1.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "dify-client" },

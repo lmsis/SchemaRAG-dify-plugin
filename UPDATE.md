@@ -4,6 +4,11 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 1.0.2
+
+- **Credencial `kb_build_in_background`:** se ativa, validação faz só **`SELECT 1`** na BD; extração de schema + upload Dify correm numa **thread em background** (daemon) e o guardar credenciais devolve logo OK. Erros do build aparecem nos logs do plugin-daemon (`[provider] phase=background_kb_thread_*`).
+- **`ping_database_connection` / `sqlalchemy_engine_kwargs`** em `service/schema_builder.py` para o ping rápido e kwargs partilhados do engine.
+
 ### 1.0.1
 
 - **KB build observability:** logs por fase (`[sql_database]`, `[schema_engine]`, `[kb_build]`, `[provider]`) com tempos, ETA durante `mschema`, **objeto x/y** por tabela e progresso de colunas em tabelas largas.

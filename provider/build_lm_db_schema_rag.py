@@ -1,7 +1,8 @@
-import os
-from typing import Any
-import sys
 import logging
+import os
+import sys
+import time
+from typing import Any
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,32 +127,68 @@ class LmDbSchemaRagProvider(ToolProvider):
             tables_name = credentials.get("tables_name", "")
             include_tables = None
             if tables_name and tables_name.strip():
-                include_tables = [table.strip() for table in tables_name.split(",") if table.strip()]
-                logging.info(f"Building RAG for tables: {include_tables}")
+                include_tables = [
+                    table.strip()
+                    for table in tables_name.split(",")
+                    if table.strip()
+                ]
+                logging.info(
+                    "[provider] phase=kb_scope subset_tables=%s", include_tables
+                )
             else:
-                logging.info("Building RAG for all tables")
+                logging.info("[provider] phase=kb_scope all_tables_in_database")
 
-            builder = LmDbSchemaRagBuilder(db_config, logger_config, dify_config, include_tables)
+            t_build = time.monotonic()
+            logging.info(
+                "[provider] phase=kb_build_start db_type=%s database=%r",
+                db_type,
+                db_config.database,
+            )
+            builder = LmDbSchemaRagBuilder(
+                db_config, logger_config, dify_config, include_tables
+            )
 
             try:
                 schema_content = builder.generate_dictionary()
 
-                table_count = schema_content.count("#") if schema_content else 0
-                logging.info(f"Data dictionary generated ({table_count} table markers)")
+                markers = schema_content.count("#") if schema_content else 0
+                logging.info(
+                    "[provider] phase=dictionary_ready lines_with_hash=%d approx_size_chars=%d",
+                    markers,
+                    len(schema_content) if schema_content else 0,
+                )
 
                 dataset_name = f"{db_config.database}_schema"
                 builder.upload_text_to_dify(dataset_name, schema_content)
-                logging.info("Uploaded to Dify knowledge base")
+                logging.info(
+                    "[provider] phase=kb_build_complete dataset_name=%r total_duration_s=%.2f",
+                    dataset_name,
+                    time.monotonic() - t_build,
+                )
 
             except Exception as e:
-                logging.error(f"LM DB Schema RAG build failed: {e}")
-                raise ValueError(f"LM DB Schema RAG build failed: {str(e)}")
+                logging.error(
+                    "[provider] phase=kb_build_failed database=%r after_s=%.2f error=%s",
+                    db_config.database,
+                    time.monotonic() - t_build,
+                    e,
+                    exc_info=True,
+                )
+                raise ValueError(
+                    f"[provider] phase=kb_build_failed database={db_config.database!r}: {e}"
+                ) from e
             finally:
                 builder.close()
 
+        except ValueError:
+            raise
         except Exception as e:
-            logging.error(f"Credential validation or build error: {e}")
-            raise ValueError(f"Credential validation or build error: {str(e)}")
+            logging.error(
+                "[provider] phase=credential_or_build error=%s", e, exc_info=True
+            )
+            raise ValueError(
+                f"[provider] phase=credential_or_build db={credentials.get('db_name')!r}: {e}"
+            ) from e
 
     def get_tools(self):
         """Return available tools."""

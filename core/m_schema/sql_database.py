@@ -1,5 +1,7 @@
 """SQL wrapper around SQLDatabase in langchain."""
 
+import logging
+import time
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from sqlalchemy import MetaData, create_engine, insert, inspect, text
@@ -11,6 +13,8 @@ try:
     import sqlalchemy_dm  # noqa: F401
 except ImportError:
     pass  # Dameng support is optional
+
+logger = logging.getLogger(__name__)
 
 
 class SQLDatabase:
@@ -114,12 +118,24 @@ class SQLDatabase:
         self._max_string_length = max_string_length
 
         self._metadata = metadata or MetaData()
+        n_objects = len(self._usable_tables)
+        t_reflect = time.monotonic()
         # including view support if view_support = true
         self._metadata.reflect(
             views=view_support,
             bind=self._engine,
             only=list(self._usable_tables),
             schema=self._schema,
+        )
+        reflect_s = time.monotonic() - t_reflect
+        logger.info(
+            "[sql_database] phase=metadata_reflect duration_s=%.2f dialect=%s "
+            "schema=%r objects=%d view_support=%s",
+            reflect_s,
+            self._engine.dialect.name,
+            schema,
+            n_objects,
+            view_support,
         )
 
     @property

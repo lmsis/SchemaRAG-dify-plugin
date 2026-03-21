@@ -4,7 +4,7 @@
 
 | Item | Valor |
 |------|--------|
-| **Versão atual no repo** | `1.0.0` — plugin id **`lmsis/lm_db_schema_rag`** |
+| **Versão atual no repo** | `1.0.1` — plugin id **`lmsis/lm_db_schema_rag`** |
 | **Próxima versão sugerida** | `1.0.1` ou `1.1.0` — conforme alterações |
 
 **Ao publicar, atualizar a versão em todos estes sítios:**

@@ -4,6 +4,12 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 1.0.1
+
+- **KB build observability:** logs por fase (`[sql_database]`, `[schema_engine]`, `[kb_build]`, `[provider]`) com tempos, ETA durante `mschema`, **objeto x/y** por tabela e progresso de colunas em tabelas largas.
+- **Plugin timeout:** `DIFY_PLUGIN_MAX_REQUEST_TIMEOUT` (default **14400** s) em `main.py` para builds de schema grandes.
+- **SchemaEngine:** logger opcional injetado pelo builder; avisos em falhas de `DISTINCT` por coluna.
+
 ### 1.0.0
 
 First **stable release line** for **LM DB Schema RAG** (`lmsis/lm_db_schema_rag`) after packaging, CI, and self-hosted install paths were validated:

@@ -1,14 +1,26 @@
+import logging
+import time
 from typing import Dict, List, Optional
-from sqlalchemy import (
-    MetaData,
-    Table,
-    select,
-)
 
+from sqlalchemy import MetaData, Table, select
 from sqlalchemy.engine import Engine
+
+from core.m_schema.m_schema import MSchema
 from core.m_schema.sql_database import SQLDatabase
 from utils import examples_to_str
-from core.m_schema.m_schema import MSchema
+
+
+def _format_eta(seconds: float) -> str:
+    if seconds <= 0 or seconds > 86400 * 14:
+        return "n/d"
+    sec = int(seconds)
+    m, s = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    if h:
+        return f"{h}h {m}m {s}s"
+    if m:
+        return f"{m}m {s}s"
+    return f"{s}s"
 
 
 class SchemaEngine(SQLDatabase):
@@ -26,7 +38,10 @@ class SchemaEngine(SQLDatabase):
         max_string_length: int = 300,
         mschema: Optional[MSchema] = None,
         db_name: Optional[str] = "",
+        logger: Optional[logging.Logger] = None,
     ):
+        self._logger = logger or logging.getLogger(__name__)
+        t_init = time.monotonic()
         super().__init__(
             engine,
             schema,
@@ -77,18 +92,34 @@ class SchemaEngine(SQLDatabase):
             self._usable_tables = all_tables
 
         self._dialect = engine.dialect.name
+        n_after_filter = len(self._usable_tables)
+        self._logger.info(
+            "[schema_engine] phase=after_schema_filter dialect=%s db_name=%r "
+            "effective_schema=%r tables_in_build=%d init_elapsed_s=%.2f",
+            self._dialect,
+            db_name,
+            schema,
+            n_after_filter,
+            time.monotonic() - t_init,
+        )
+
         if mschema is not None:
             self._mschema = mschema
         else:
             self._mschema = MSchema(db_id=db_name, schema=schema)
             self.init_mschema()
 
+        self._logger.info(
+            "[schema_engine] phase=engine_ready total_elapsed_s=%.2f",
+            time.monotonic() - t_init,
+        )
+
     @property
     def mschema(self) -> MSchema:
         """Return M-Schema"""
         return self._mschema
 
-    def get_pk_constraint(self, table_name: str) -> Dict:
+    def get_pk_constraint(self, table_name: str) -> List[str]:
         return self._inspector.get_pk_constraint(
             table_name, self._tables_schemas[table_name]
         )["constrained_columns"]
@@ -138,18 +169,39 @@ class SchemaEngine(SQLDatabase):
         return values
 
     def init_mschema(self):
-        # print(f"Debug: Database dialect = {self._engine.dialect.name}")
-        # print(f"Debug: DB name = {self._db_name}")
-        # print(f"Debug: Available schemas = {self.get_schema_names()}")
-        # print(f"Debug: Usable tables = {self._usable_tables}")
-        # print(f"Debug: Tables schemas mapping = {self._tables_schemas}")
+        total = len(self._usable_tables)
+        t_build = time.monotonic()
+        self._logger.info(
+            "[schema_engine] phase=mschema_build_start tables=%d "
+            "(each column runs one DISTINCT sample; this dominates duration on large DBs)",
+            total,
+        )
 
-        for table_name in self._usable_tables:
+        progress_every = max(1, min(50, total // 20 or 1))
+
+        for idx, table_name in enumerate(self._usable_tables):
+            t_table = time.monotonic()
+            obj_index = idx + 1
+            schema_name = self._tables_schemas[table_name]
+            qualified = (
+                f"{schema_name}.{table_name}"
+                if schema_name
+                else table_name
+            )
+            self._logger.info(
+                "[schema_engine] phase=mschema_object "
+                "object=%d/%d qualified_name=%r inspector_table=%r schema=%r",
+                obj_index,
+                total,
+                qualified,
+                table_name,
+                schema_name,
+            )
+
             table_comment = self.get_table_comment(table_name)
             table_comment = (
                 "" if table_comment is None else table_comment.strip()
             )  # For different database types, handle schema naming
-            schema_name = self._tables_schemas[table_name]
             dialect_name = self._engine.dialect.name
 
             if dialect_name in ["mysql", "doris"] and schema_name == self._db_name:
@@ -179,7 +231,11 @@ class SchemaEngine(SQLDatabase):
             fields = self._inspector.get_columns(
                 table_name, schema=self._tables_schemas[table_name]
             )
-            for field in fields:
+            n_cols = len(fields)
+            # Log column DISTINCT progress: wide tables ~8 steps; narrow tables 1ª e última coluna.
+            col_log_step = max(1, n_cols // 8) if n_cols > 16 else None
+
+            for col_idx, field in enumerate(fields, start=1):
                 field_type = f"{field['type']!s}"
                 field_name = field["name"]
                 primary_key = field_name in pks
@@ -190,9 +246,39 @@ class SchemaEngine(SQLDatabase):
                 if default is not None:
                     default = f"{default}"
 
+                log_col = False
+                if n_cols == 0:
+                    pass
+                elif col_log_step is not None:
+                    log_col = (
+                        col_idx == 1
+                        or col_idx == n_cols
+                        or col_idx % col_log_step == 0
+                    )
+                else:
+                    log_col = col_idx == 1 or col_idx == n_cols
+
+                if log_col:
+                    self._logger.info(
+                        "[schema_engine] phase=column_distinct_sample "
+                        "object=%d/%d qualified_name=%r column=%d/%d column_name=%r",
+                        obj_index,
+                        total,
+                        table_with_schema,
+                        col_idx,
+                        n_cols,
+                        field_name,
+                    )
+
                 try:
                     examples = self.fectch_distinct_values(table_name, field_name, 5)
-                except Exception:
+                except Exception as ex:
+                    self._logger.warning(
+                        "[schema_engine] phase=distinct_sample table=%s column=%s error=%s",
+                        table_with_schema,
+                        field_name,
+                        ex,
+                    )
                     examples = []
                 examples = examples_to_str(examples)
 
@@ -207,3 +293,30 @@ class SchemaEngine(SQLDatabase):
                     comment=field_comment,
                     examples=examples,
                 )
+
+            done = idx + 1
+            table_elapsed = time.monotonic() - t_table
+            elapsed = time.monotonic() - t_build
+            rate = done / elapsed if elapsed > 0 else 0.0
+            remaining = total - done
+            eta_s = (remaining / rate) if rate > 0 else 0.0
+
+            if done == 1 or done % progress_every == 0 or done == total:
+                self._logger.info(
+                    "[schema_engine] phase=mschema_object_done "
+                    "object=%d/%d last_qualified_name=%r columns=%d "
+                    "last_table_s=%.2f elapsed_s=%.1f eta_remaining≈%s",
+                    done,
+                    total,
+                    table_with_schema,
+                    n_cols,
+                    table_elapsed,
+                    elapsed,
+                    _format_eta(eta_s),
+                )
+
+        self._logger.info(
+            "[schema_engine] phase=mschema_build_done tables=%d total_elapsed_s=%.2f",
+            total,
+            time.monotonic() - t_build,
+        )

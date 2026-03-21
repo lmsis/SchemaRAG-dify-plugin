@@ -1,5 +1,6 @@
 import os
-from typing import Optional, List
+import time
+from typing import List, Optional
 import sys
 
 sys.path.append(
@@ -104,24 +105,46 @@ class LmDbSchemaRagBuilder:
     def _initialize_components(self):
         """Initialize schema engine and optional Dify uploader."""
         if not self.engine:
-            self.logger.error("Database engine was not created; cannot init schema engine")
+            self.logger.error(
+                "[kb_build] phase=engine Database engine was not created; cannot init schema engine"
+            )
             raise RuntimeError("Database engine was not created; check database configuration")
         try:
+            t0 = time.monotonic()
+            self.logger.info(
+                "[kb_build] phase=schema_engine_start db_type=%s database=%r include_tables=%s",
+                self.db_config.type,
+                self.db_config.database,
+                self.include_tables,
+            )
             self.schema_engine = SchemaEngine(
                 engine=self.engine,
                 db_name=self.db_config.database,
                 include_tables=self.include_tables,
+                logger=self.logger,
             )
-            self.logger.info("Schema engine initialized successfully")
+            self.logger.info(
+                "[kb_build] phase=schema_engine_done duration_s=%.2f",
+                time.monotonic() - t0,
+            )
         except Exception as e:
-            self.logger.error(f"Schema engine initialization failed: {e}")
-            raise RuntimeError("Cannot initialize schema engine; check database configuration")
+            self.logger.error(
+                "[kb_build] phase=schema_engine_failed db=%r error=%s",
+                self.db_config.database,
+                e,
+                exc_info=True,
+            )
+            raise RuntimeError(
+                f"Cannot initialize schema engine; check database configuration: {e}"
+            ) from e
         if self.dify_config:
             try:
                 self.uploader = DifyUploader(self.dify_config, self.logger)
-                self.logger.info("Dify uploader initialized successfully")
+                self.logger.info("[kb_build] phase=dify_uploader_ready")
             except ImportError as e:
-                self.logger.error(f"Dify components failed to initialize: {e}")
+                self.logger.error(
+                    "[kb_build] phase=dify_uploader_failed error=%s", e, exc_info=True
+                )
                 self.uploader = None
 
     def generate_dictionary(self) -> Optional[str]:
@@ -133,13 +156,22 @@ class LmDbSchemaRagBuilder:
         if not self.schema_engine:
             self.logger.error("Schema engine not initialized; cannot generate dictionary")
             raise RuntimeError("Schema engine not initialized; check database connection")
-        self.logger.info("Generating data dictionary...")
+        t0 = time.monotonic()
+        self.logger.info("[kb_build] phase=serialize_dictionary_start")
         try:
             mschema = self.schema_engine.mschema
             if not mschema:
-                self.logger.error("Could not load database schema information")
+                self.logger.error(
+                    "[kb_build] phase=serialize_dictionary_failed reason=no_mschema"
+                )
                 raise RuntimeError("Cannot load database schema; check database connection")
             mschema_str = mschema.to_mschema()
+            self.logger.info(
+                "[kb_build] phase=serialize_dictionary_done duration_s=%.2f chars=%d tables_in_mschema=%d",
+                time.monotonic() - t0,
+                len(mschema_str) if mschema_str else 0,
+                len(mschema.tables),
+            )
             # if save_path:
             #     if save_path.endswith(".json"):
             #         mschema.save(save_path)
@@ -148,7 +180,9 @@ class LmDbSchemaRagBuilder:
             #     logging.info(f"Data dictionary saved to: {save_path}")
             return mschema_str
         except Exception as e:
-            self.logger.error(f"Error generating data dictionary: {e}")
+            self.logger.error(
+                "[kb_build] phase=serialize_dictionary_failed error=%s", e, exc_info=True
+            )
             raise
 
     def upload_file_to_dify(self, file_path: str):
@@ -177,11 +211,26 @@ class LmDbSchemaRagBuilder:
         if not self.uploader:
             self.logger.error("Dify upload is disabled or failed to initialize")
             raise RuntimeError("Dify upload is disabled or failed to initialize")
-        self.logger.info(f"Uploading text to Dify: {name}")
+        t0 = time.monotonic()
+        self.logger.info(
+            "[kb_build] phase=dify_upload_start name=%r content_chars=%d",
+            name,
+            len(content) if content else 0,
+        )
         try:
             self.uploader.upload_text(name=name, content=content)
+            self.logger.info(
+                "[kb_build] phase=dify_upload_done name=%r duration_s=%.2f",
+                name,
+                time.monotonic() - t0,
+            )
         except Exception as e:
-            self.logger.error(f"Failed to upload {name} to Dify: {e}")
+            self.logger.error(
+                "[kb_build] phase=dify_upload_failed name=%r error=%s",
+                name,
+                e,
+                exc_info=True,
+            )
             raise
 
     def run_full_process(self):

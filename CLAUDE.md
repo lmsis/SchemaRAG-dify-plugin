@@ -5,7 +5,7 @@
 **LM DB Schema RAG** is a **Dify plugin** (`lmsis/lm_db_schema_rag`, PyPI-style name `lm-db-schema-rag`) that automates database schema analysis and enables natural language to SQL query conversion.
 
 - **Type:** Tool Provider Plugin for Dify
-- **Version:** 1.0.3
+- **Version:** 1.0.4
 - **Language:** Python 3.12+
 - **License:** Apache-2.0
 - **Author:** lmsis
@@ -418,4 +418,4 @@ Provider → Tool → Service → Database/API
 
 **Schema KB build slow or HTTP timeout on save:**
 - `main.py` uses `DIFY_PLUGIN_MAX_REQUEST_TIMEOUT` (default 14400 s). Logs show phases `[sql_database]`, `[schema_engine]`, `[kb_build]`, `[provider]` with elapsed time and ETA during `mschema` build.
-- **Provider validation** (save credentials): checks DB with `SELECT 1` and pings the Dify dataset API (`list_datasets`); it does **not** extract schema or upload. Use the workflow tool **`schema_kb_build`** for the full KB build. That tool returns only **`true`** / **`false`**; target KB is a **required `dynamic-select`** (`knowledge_dataset`) populated by `_fetch_parameter_options` from `list_datasets`. Depends on **`dify-plugin>=0.5.0`**. Bind the node to the correct **Tool Provider credential**.
+- **Provider validation** (save credentials): checks DB with `SELECT 1` and pings the Dify dataset API (`list_datasets`); it does **not** extract schema or upload. Use the workflow tool **`schema_kb_build`** for the full KB build. That tool returns only **`true`** / **`false`**; **`dataset_id`** matches **Text2SQL** (`string`, `form: llm`); first ID if comma-separated. Bind the correct **Tool Provider credential**.

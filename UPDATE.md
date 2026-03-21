@@ -4,11 +4,15 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 1.0.4
+
+- **Tool `schema_kb_build`:** parâmetro **`dataset_id`** alinhado ao **Text to SQL** (`string`, `form: llm`); removido `dynamic-select` / `_fetch_parameter_options`. Vários IDs separados por vírgula → usa-se só o **primeiro** no upload.
+
 ### 1.0.3
 
 - **Validação ao guardar credenciais:** apenas **`SELECT 1`** na BD + pedido mínimo à API Dify (`list_datasets`); **não** extrai schema nem faz upload.
 - **Removida** a credencial `kb_build_in_background` (e o build em thread no provider).
-- **Nova tool `schema_kb_build`:** executa o build completo (extração + upload) de forma **síncrona** num workflow. Saída só **`true`** / **`false`**. O destino é um **`dynamic-select` obrigatório** (`knowledge_dataset`): a UI lista as knowledge bases via API (`list_datasets`) com a mesma chave do provider — **é obrigatório escolher uma base**. Requer **`dify-plugin>=0.5.0`** (suporte a `dynamic-select` + `_fetch_parameter_options`).
+- **Nova tool `schema_kb_build`:** build completo (extração + upload) **síncrono** no workflow; saída **`true`** / **`false`**. (Parâmetro de destino refinado na **1.0.4**.)
 
 ### 1.0.2
 

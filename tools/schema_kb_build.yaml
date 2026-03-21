@@ -8,25 +8,25 @@ identity:
 
 description:
   human:
-    en_US: Extract database schema and upload into a Dify knowledge base you pick from the list (loaded from your workspace via the Dataset API key). In the node, bind the Tool Provider credential from plugin setup. Output is only true or false.
-    zh_Hans: 抽取数据库 schema 并上传到您在列表中选择的 Dify 知识库（选项由 Dataset API key 从工作区加载）。节点中绑定插件里配置的 Tool Provider 凭据。输出仅为 true 或 false。
-    pt_BR: Extrai o schema da BD e envia para a **knowledge base Dify que escolher na lista** (opções vêm da API com a chave de dataset). No nó, associe a **credencial do Tool Provider** configurada no plugin. Saída só **true** ou **false**.
-  llm: Uploads database schema text into a user-selected Dify dataset. Returns only true or false.
+    en_US: Extract database schema and upload into a Dify knowledge base. Use the same Dataset ID field as Text to SQL (UUID from the knowledge base in Dify). Bind the Tool Provider credential from plugin setup. Output is only true or false.
+    zh_Hans: 抽取数据库 schema 并上传到 Dify 知识库。Dataset ID 与 Text to SQL 相同（Dify 知识库 UUID）。节点绑定插件 Tool Provider 凭据。输出仅为 true 或 false。
+    pt_BR: Extrai o schema da BD e envia para um dataset Dify. O campo **Dataset ID** é o **mesmo que no Text to SQL** (UUID da knowledge base no Dify). Associe a credencial do Tool Provider. Saída só **true** ou **false**.
+  llm: Uploads database schema into a Dify dataset. Same dataset_id parameter semantics as Text2SQL. Returns only true or false.
 
 parameters:
-  - name: knowledge_dataset
-    type: dynamic-select
+  - name: dataset_id
+    type: string
     required: true
     label:
-      en_US: Knowledge base
-      zh_Hans: 知识库
-      pt_BR: Base de conhecimento
+      en_US: Dataset ID
+      zh_Hans: 知识库ID
+      pt_BR: ID do dataset
     human_description:
-      en_US: Choose the target knowledge base (datasets your Dataset API key can list). Required.
-      zh_Hans: 选择目标知识库（由 Dataset API key 可列出的知识库）。必填。
-      pt_BR: Escolha a knowledge base de destino (datasets que a sua chave de API consegue listar). Obrigatório.
-    llm_description: Target Dify dataset UUID for schema upload; selected from workspace list.
-    form: form
+      en_US: The ID of the Dify dataset containing the database schema. Supports multiple datasets separated by commas for comprehensive schema coverage.
+      zh_Hans: 包含数据库架构的Dify知识库ID。支持逗号分隔的多个知识库ID以获得更全面的架构覆盖。
+      pt_BR: ID do dataset Dify que contém o esquema do banco. Aceita vários IDs separados por vírgula para cobertura mais ampla do esquema.
+    llm_description: The dataset ID from Dify knowledge base containing database schema information. Can accept multiple dataset IDs separated by commas (e.g., "dataset1,dataset2,dataset3") for retrieving from multiple knowledge bases concurrently.
+    form: llm
 
 extra:
   python:

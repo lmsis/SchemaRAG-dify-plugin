@@ -209,33 +209,57 @@ class LmDbSchemaRagBuilder:
             self.logger.error(f"Failed to upload file {file_path} to Dify: {e}")
             raise
 
-    def upload_text_to_dify(self, name: str, content: str):
+    def upload_text_to_dify(
+        self,
+        document_name: str,
+        content: str,
+        *,
+        dataset_name: str | None = None,
+        dataset_id: str | None = None,
+    ):
         """
-        Upload text to the Dify knowledge base.
-
-        :param name: Document name
-        :param content: Text body
+        Upload text to Dify. Target dataset: ``dataset_id`` XOR ``dataset_name``;
+        if both omitted, pass ``dataset_name=document_name`` (legacy single-name behavior).
         """
         if not self.uploader:
             self.logger.error("Dify upload is disabled or failed to initialize")
             raise RuntimeError("Dify upload is disabled or failed to initialize")
         t0 = time.monotonic()
+        ds_label = (dataset_id or dataset_name or document_name) or ""
         self.logger.info(
-            "[kb_build] phase=dify_upload_start name=%r content_chars=%d",
-            name,
+            "[kb_build] phase=dify_upload_start doc=%r target=%r content_chars=%d",
+            document_name,
+            ds_label,
             len(content) if content else 0,
         )
         try:
-            self.uploader.upload_text(name=name, content=content)
+            if (dataset_id or "").strip():
+                self.uploader.upload_text_to_dataset(
+                    document_name=document_name,
+                    content=content,
+                    dataset_id=dataset_id,
+                )
+            elif (dataset_name or "").strip():
+                self.uploader.upload_text_to_dataset(
+                    document_name=document_name,
+                    content=content,
+                    dataset_name=dataset_name,
+                )
+            else:
+                self.uploader.upload_text_to_dataset(
+                    document_name=document_name,
+                    content=content,
+                    dataset_name=document_name,
+                )
             self.logger.info(
-                "[kb_build] phase=dify_upload_done name=%r duration_s=%.2f",
-                name,
+                "[kb_build] phase=dify_upload_done doc=%r duration_s=%.2f",
+                document_name,
                 time.monotonic() - t0,
             )
         except Exception as e:
             self.logger.error(
-                "[kb_build] phase=dify_upload_failed name=%r error=%s",
-                name,
+                "[kb_build] phase=dify_upload_failed doc=%r error=%s",
+                document_name,
                 e,
                 exc_info=True,
             )
@@ -249,7 +273,7 @@ class LmDbSchemaRagBuilder:
             schema_content = self.generate_dictionary()
             name = f"{self.db_config.database}_schema"
             if self.dify_config and schema_content:
-                self.upload_text_to_dify(name=name, content=schema_content)
+                self.upload_text_to_dify(name, schema_content)
             self.logger.info("All tasks completed successfully.")
         except Exception as e:
             self.logger.error(f"Pipeline error: {e}")

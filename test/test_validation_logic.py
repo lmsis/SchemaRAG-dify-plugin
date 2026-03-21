@@ -59,7 +59,8 @@ def test_schema_rag_build_process():
                 print("🚀 Starting LM DB Schema RAG build...")
 
                 try:
-                    provider._build_lm_db_schema_rag(test_credentials)
+                    ok = provider._build_lm_db_schema_rag(test_credentials)
+                    assert ok is True
                     print("✅ LM DB Schema RAG build succeeded!")
 
                 except Exception as e:

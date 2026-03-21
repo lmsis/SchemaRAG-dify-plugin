@@ -1,11 +1,11 @@
 [project]
 name = "lm-db-schema-rag"
-version = "1.0.2"
+version = "1.0.3"
 description = "LM DB Schema RAG — database schema for RAG in Dify dataset"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dify-plugin",
+    "dify-plugin>=0.5.0",
     "sqlalchemy",
     "pymysql",
     "psycopg2-binary",

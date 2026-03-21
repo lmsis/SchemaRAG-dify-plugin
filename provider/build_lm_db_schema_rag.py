@@ -1,8 +1,6 @@
-import copy
 import logging
 import os
 import sys
-import threading
 import time
 from typing import Any
 
@@ -14,47 +12,33 @@ from dify_plugin import ToolProvider
 from dify_plugin.config.logger_format import plugin_logger_handler
 
 from config import DatabaseConfig, DifyUploadConfig, LoggerConfig
+from service.dify_service import ping_dify_knowledge_api
 from service.schema_builder import LmDbSchemaRagBuilder, ping_database_connection
 from tools.sql_executer import SQLExecuterTool
 from tools.text2sql import Text2SQLTool
 
 
-def _truthy_credential_flag(raw: Any) -> bool:
-    if raw is True:
-        return True
-    if raw is False or raw is None:
-        return False
-    if isinstance(raw, str):
-        return raw.strip().lower() in ("1", "true", "yes", "on")
-    return bool(raw)
-
-
-def _background_kb_build(credentials: dict[str, Any]) -> None:
-    """Runs full schema + Dify upload; must never raise to the HTTP layer."""
-    log = logging.getLogger(f"{__name__}.background_kb")
-    log.setLevel(logging.INFO)
-    if not log.handlers:
-        log.addHandler(plugin_logger_handler)
-
-    log.info(
-        "[provider] phase=background_kb_thread_started db=%r thread=%s",
-        credentials.get("db_name"),
-        threading.current_thread().name,
+def build_schema_kb_from_credentials(
+    credentials: dict[str, Any],
+    *,
+    dataset_name: str | None = None,
+    dataset_id: str | None = None,
+) -> bool:
+    """
+    Full schema extraction and Dify dataset upload (workflow / tool entry).
+    Returns True on success.
+    """
+    provider = LmDbSchemaRagProvider()
+    return provider._build_lm_db_schema_rag(
+        credentials,
+        target_dataset_name=dataset_name,
+        target_dataset_id=dataset_id,
     )
-    try:
-        provider = LmDbSchemaRagProvider()
-        provider._build_lm_db_schema_rag(credentials)
-    except Exception:
-        log.error(
-            "[provider] phase=background_kb_thread_failed db=%r",
-            credentials.get("db_name"),
-            exc_info=True,
-        )
 
 
 class LmDbSchemaRagProvider(ToolProvider):
     """
-    LM DB Schema RAG — tool provider (credentials validation + schema KB build).
+    LM DB Schema RAG — tool provider (connection validation on save; full KB build via tool).
     """
 
     def _get_default_port(self, db_type: str) -> int:
@@ -84,7 +68,8 @@ class LmDbSchemaRagProvider(ToolProvider):
 
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         """
-        Validate the credentials and build schema knowledge base for RAG.
+        Validate DB connectivity and Dify dataset API; does not build the schema KB.
+        Use the workflow tool ``schema_kb_build`` to extract schema and upload.
         """
         api_uri = credentials.get("api_uri")
         dataset_api_key = credentials.get("dataset_api_key")
@@ -133,44 +118,60 @@ class LmDbSchemaRagProvider(ToolProvider):
         if not log.handlers:
             log.addHandler(plugin_logger_handler)
 
-        background = _truthy_credential_flag(credentials.get("kb_build_in_background"))
-
-        if background:
-            db_config = self._database_config_from_credentials(credentials)
-            try:
-                ping_database_connection(db_config)
-            except Exception as e:
-                log.error(
-                    "[provider] phase=quick_db_ping_failed db=%r error=%s",
-                    db_name,
-                    e,
-                    exc_info=True,
-                )
-                raise ValueError(
-                    f"[provider] phase=quick_db_ping database={db_name!r}: {e}"
-                ) from e
-
-            cred_copy = copy.deepcopy(credentials)
-            thread = threading.Thread(
-                target=_background_kb_build,
-                args=(cred_copy,),
-                name="lm-schema-kb-build",
-                daemon=True,
-            )
-            thread.start()
-            log.info(
-                "[provider] phase=kb_build_deferred db=%r — full schema+upload running "
-                "in background thread %s; validation returned OK",
+        db_config = self._database_config_from_credentials(credentials)
+        try:
+            ping_database_connection(db_config)
+        except Exception as e:
+            log.error(
+                "[provider] phase=validate_db_ping_failed db=%r error=%s",
                 db_name,
-                thread.name,
+                e,
+                exc_info=True,
             )
-            return
+            raise ValueError(
+                f"[provider] phase=validate_db_ping database={db_name!r}: {e}"
+            ) from e
 
-        self._build_lm_db_schema_rag(credentials)
+        try:
+            ping_dify_knowledge_api(
+                credentials.get("api_uri", ""),
+                credentials.get("dataset_api_key", ""),
+            )
+        except ImportError as e:
+            log.error(
+                "[provider] phase=validate_dify_ping_failed error=%s",
+                e,
+                exc_info=True,
+            )
+            raise ValueError(
+                f"[provider] phase=validate_dify_ping: {e}"
+            ) from e
+        except Exception as e:
+            log.error(
+                "[provider] phase=validate_dify_ping_failed error=%s",
+                e,
+                exc_info=True,
+            )
+            raise ValueError(
+                f"[provider] phase=validate_dify_ping: {e}"
+            ) from e
 
-    def _build_lm_db_schema_rag(self, credentials: dict[str, Any]) -> None:
+        log.info(
+            "[provider] phase=validate_ok db=%r — schema KB build is deferred to tool schema_kb_build",
+            db_name,
+        )
+
+    def _build_lm_db_schema_rag(
+        self,
+        credentials: dict[str, Any],
+        *,
+        target_dataset_name: str | None = None,
+        target_dataset_id: str | None = None,
+    ) -> bool:
         """
         Build schema RAG knowledge base using the provided credentials.
+        Target dataset: ``target_dataset_id`` if set, else ``target_dataset_name``,
+        else default ``{database}_schema`` (create/find by name). Returns True on success.
         """
         try:
 
@@ -227,13 +228,44 @@ class LmDbSchemaRagProvider(ToolProvider):
                     len(schema_content) if schema_content else 0,
                 )
 
-                dataset_name = f"{db_config.database}_schema"
-                builder.upload_text_to_dify(dataset_name, schema_content)
-                logging.info(
-                    "[provider] phase=kb_build_complete dataset_name=%r total_duration_s=%.2f",
-                    dataset_name,
-                    time.monotonic() - t_build,
-                )
+                document_name = f"{db_config.database}_schema"
+                tid = (target_dataset_id or "").strip()
+                tname = (target_dataset_name or "").strip()
+                if tid:
+                    builder.upload_text_to_dify(
+                        document_name,
+                        schema_content,
+                        dataset_id=tid,
+                    )
+                    logging.info(
+                        "[provider] phase=kb_build_complete dataset_id=%r total_duration_s=%.2f",
+                        tid,
+                        time.monotonic() - t_build,
+                    )
+                elif tname:
+                    builder.upload_text_to_dify(
+                        document_name,
+                        schema_content,
+                        dataset_name=tname,
+                    )
+                    logging.info(
+                        "[provider] phase=kb_build_complete dataset_name=%r total_duration_s=%.2f",
+                        tname,
+                        time.monotonic() - t_build,
+                    )
+                else:
+                    default_ds = f"{db_config.database}_schema"
+                    builder.upload_text_to_dify(
+                        default_ds,
+                        schema_content,
+                        dataset_name=default_ds,
+                    )
+                    logging.info(
+                        "[provider] phase=kb_build_complete dataset_name=%r total_duration_s=%.2f",
+                        default_ds,
+                        time.monotonic() - t_build,
+                    )
+                return True
 
             except Exception as e:
                 logging.error(
@@ -261,4 +293,6 @@ class LmDbSchemaRagProvider(ToolProvider):
 
     def get_tools(self):
         """Return available tools."""
-        return [Text2SQLTool, SQLExecuterTool]
+        from tools.schema_kb_build import SchemaKbBuildTool
+
+        return [Text2SQLTool, SQLExecuterTool, SchemaKbBuildTool]

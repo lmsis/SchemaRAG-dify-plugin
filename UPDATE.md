@@ -4,9 +4,15 @@ This document describes dynamic configuration and multi–knowledge-base feature
 
 ## Version history
 
+### 1.0.3
+
+- **Validação ao guardar credenciais:** apenas **`SELECT 1`** na BD + pedido mínimo à API Dify (`list_datasets`); **não** extrai schema nem faz upload.
+- **Removida** a credencial `kb_build_in_background` (e o build em thread no provider).
+- **Nova tool `schema_kb_build`:** executa o build completo (extração + upload) de forma **síncrona** num workflow. Saída só **`true`** / **`false`**. O destino é um **`dynamic-select` obrigatório** (`knowledge_dataset`): a UI lista as knowledge bases via API (`list_datasets`) com a mesma chave do provider — **é obrigatório escolher uma base**. Requer **`dify-plugin>=0.5.0`** (suporte a `dynamic-select` + `_fetch_parameter_options`).
+
 ### 1.0.2
 
-- **Credencial `kb_build_in_background`:** se ativa, validação faz só **`SELECT 1`** na BD; extração de schema + upload Dify correm numa **thread em background** (daemon) e o guardar credenciais devolve logo OK. Erros do build aparecem nos logs do plugin-daemon (`[provider] phase=background_kb_thread_*`).
+- **Credencial `kb_build_in_background`:** se ativa, validação faz só **`SELECT 1`** na BD; extração de schema + upload Dify correm numa **thread em background** (daemon) e o guardar credenciais devolve logo OK. Erros do build aparecem nos logs do plugin-daemon (`[provider] phase=background_kb_thread_*`). *(Removido na 1.0.3 — usar a tool `schema_kb_build`.)*
 - **`ping_database_connection` / `sqlalchemy_engine_kwargs`** em `service/schema_builder.py` para o ping rápido e kwargs partilhados do engine.
 
 ### 1.0.1

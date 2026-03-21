@@ -1,0 +1,33 @@
+identity:
+  name: schema_kb_build
+  author: lmsis
+  label:
+    en_US: Build schema knowledge base
+    zh_Hans: 构建 schema 知识库
+    pt_BR: Construir base de conhecimento do schema
+
+description:
+  human:
+    en_US: Extract database schema and upload into a Dify knowledge base you pick from the list (loaded from your workspace via the Dataset API key). In the node, bind the Tool Provider credential from plugin setup. Output is only true or false.
+    zh_Hans: 抽取数据库 schema 并上传到您在列表中选择的 Dify 知识库（选项由 Dataset API key 从工作区加载）。节点中绑定插件里配置的 Tool Provider 凭据。输出仅为 true 或 false。
+    pt_BR: Extrai o schema da BD e envia para a **knowledge base Dify que escolher na lista** (opções vêm da API com a chave de dataset). No nó, associe a **credencial do Tool Provider** configurada no plugin. Saída só **true** ou **false**.
+  llm: Uploads database schema text into a user-selected Dify dataset. Returns only true or false.
+
+parameters:
+  - name: knowledge_dataset
+    type: dynamic-select
+    required: true
+    label:
+      en_US: Knowledge base
+      zh_Hans: 知识库
+      pt_BR: Base de conhecimento
+    human_description:
+      en_US: Choose the target knowledge base (datasets your Dataset API key can list). Required.
+      zh_Hans: 选择目标知识库（由 Dataset API key 可列出的知识库）。必填。
+      pt_BR: Escolha a knowledge base de destino (datasets que a sua chave de API consegue listar). Obrigatório.
+    llm_description: Target Dify dataset UUID for schema upload; selected from workspace list.
+    form: form
+
+extra:
+  python:
+    source: tools/schema_kb_build.py

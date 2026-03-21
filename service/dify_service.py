@@ -142,32 +142,48 @@ class DifyUploader:
             self.logger.error(f"Upload failed for '{file_path}': {str(e)}")
             raise
 
-    def upload_text(self, name: str, content: str):
-        """Upload text content to the dataset named `name`."""
-        dataset_name = name
-        self.logger.info(f"Preparing text upload to dataset '{dataset_name}'")
-        try:
-            dataset_id = self._get_or_create_dataset(dataset_name)
-            self.client.dataset_id = dataset_id
+    def upload_text_to_dataset(
+        self,
+        document_name: str,
+        content: str,
+        *,
+        dataset_name: str | None = None,
+        dataset_id: str | None = None,
+    ) -> None:
+        """
+        Upload text to a dataset. Pass exactly one of ``dataset_id`` (existing KB) or
+        ``dataset_name`` (resolve or create by name).
+        """
+        rid = (dataset_id or "").strip()
+        rname = (dataset_name or "").strip()
+        if rid:
+            self.logger.info("Preparing text upload to dataset ID %r", rid)
+            self.client.dataset_id = rid
+        elif rname:
+            self.logger.info("Preparing text upload to dataset named %r", rname)
+            self.client.dataset_id = self._get_or_create_dataset(rname)
+        else:
+            raise ValueError("Either dataset_id or dataset_name is required")
 
-            extra_params = {
-                "indexing_technique": self.config.indexing_technique,
-                "process_rule": {
-                    "rules": {
-                        "pre_processing_rules": [
-                            {"id": "remove_extra_spaces", "enabled": False},
-                            {"id": "remove_urls_emails", "enabled": True},
-                        ],
-                        "segmentation": {
-                            "separator": "\n#",
-                            "max_tokens": int(self.config.max_tokens),
-                        },
+        extra_params = {
+            "indexing_technique": self.config.indexing_technique,
+            "process_rule": {
+                "rules": {
+                    "pre_processing_rules": [
+                        {"id": "remove_extra_spaces", "enabled": False},
+                        {"id": "remove_urls_emails", "enabled": True},
+                    ],
+                    "segmentation": {
+                        "separator": "\n#",
+                        "max_tokens": int(self.config.max_tokens),
                     },
-                    "mode": self.config.process_mode,
                 },
-            }
+                "mode": self.config.process_mode,
+            },
+        }
+        try:
             response = self.client.create_document_by_text(
-                name=name, text=content, extra_params=extra_params
+                name=document_name, text=content, extra_params=extra_params
             )
 
             response.raise_for_status()
@@ -175,12 +191,39 @@ class DifyUploader:
             response_data = response.json()
             doc_id = response_data.get("document", {}).get("id", "N/A")
             self.logger.info(
-                f"Uploaded: {name} -> dataset: {dataset_name} (document ID: {doc_id})"
+                "Uploaded document %r (document ID: %s)",
+                document_name,
+                doc_id,
             )
 
         except Exception as e:
-            self.logger.error(f"Upload failed for '{name}': {str(e)}")
+            self.logger.error("Upload failed for document %r: %s", document_name, e)
             raise
+
+    def upload_text(self, name: str, content: str):
+        """Upload text; dataset is resolved by name (legacy: same string for dataset and document)."""
+        self.upload_text_to_dataset(
+            document_name=name, content=content, dataset_name=name
+        )
+
+
+def ping_dify_knowledge_api(base_url: str, api_key: str) -> None:
+    """
+    Minimal check that the Dify dataset (knowledge) API is reachable with the given key.
+    Raises ValueError on HTTP or network errors.
+    """
+    if not base_url or not str(base_url).strip():
+        raise ValueError("Dify API URI is required")
+    if not api_key or not str(api_key).strip():
+        raise ValueError("Dataset API key is required")
+    if KnowledgeBaseClient is None:
+        raise ImportError(
+            "Dify client is not installed. Please install it to validate the dataset API."
+        )
+    client = KnowledgeBaseClient(
+        api_key=api_key, base_url=str(base_url).rstrip("/")
+    )
+    client.list_datasets(page=1, page_size=1)
 
 
 if __name__ == "__main__":
